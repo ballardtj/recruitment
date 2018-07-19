@@ -1,0 +1,33 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Experiment 1 - Motion
+
+```{r, results='asis',echo=FALSE,message=FALSE}
+source("processing/0_functions.R")
+
+mean_v = list()
+B = list()
+t0 = list()
+A = list()
+
+ctr=0
+for (wave in c('early','late')){
+  for (group in c('firstyear','community','mturk')){
+    ctr=ctr+1
+    load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
+    
+    #get posterior predictives
+    parms = get_parms_exp1(converged_samples)
+    mean_v[[ctr]]=parms$mean_v
+    B[[ctr]]=parms$B
+    t0[[ctr]]=parms$t0
+    A[[ctr]]=parms$A
+    
+  }
+}
+```

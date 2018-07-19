@@ -1,0 +1,16 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, results='asis'}
+library(ggplot2)
+for (i in 1:2){
+cat('\n')  
+cat("#This is a heading for ", i, "\n") 
+print(ggplot(data=cars) + geom_point(aes(x=speed,y=dist)))
+cat('\n') 
+}
+```

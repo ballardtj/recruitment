@@ -1,0 +1,151 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Experiment 1 - Motion
+
+## Early
+
+### First Years
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_firstyear_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Community
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_community_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Mechanical Turk
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_mturk_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+## Late
+
+### First Years
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_firstyear_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Community
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_community_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Mechanical Turk
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_mturk_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+
+# Experiment 2 - Brightness
+
+## Early
+
+### First Years
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_firstyear_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Community
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_community_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Mechanical Turk
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_mturk_early.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+## Late
+
+### First Years
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_firstyear_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Community
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_community_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
+
+### Mechanical Turk
+
+```{r}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp2_mturk_late.RData")
+gelman.diag.dmc(converged_samples)
+t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T)
+```
