@@ -2,7 +2,7 @@ source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 library(tidyverse)
 
-get_pp_exp1 = function(converged_samples,wave_,source_){
+get_pp_exp1 = function(converged_samples,wave_,source_,Nsamp=100,Nreps=50){
 
   collapse<-function(data,design){
     quant = data %>%
@@ -76,8 +76,6 @@ get_pp_exp1 = function(converged_samples,wave_,source_){
 
   #Generate Posterior Predictives
   model = attributes(converged_samples[[1]]$data)$model
-  Nsamp=10 #number of predictive samples
-  Nreps=50  #number of replications of each design cell. In our experiment this was 45.
 
   #Get sample parameter values for each subject
   mcmc.list=list()
@@ -150,7 +148,7 @@ get_pp_exp1 = function(converged_samples,wave_,source_){
 
 
 
-get_pp_exp2 = function(converged_samples,wave_,source_){
+get_pp_exp2 = function(converged_samples,wave_,source_,Nsamp=100){
 
   collapse<-function(data,design){
     quant = data %>%
@@ -223,8 +221,6 @@ get_pp_exp2 = function(converged_samples,wave_,source_){
 
   #Generate Posterior Predictives
   model = attributes(converged_samples[[1]]$data)$model
-  Nsamp=10 #number of predictive samples
-  Nreps=50  #number of replications of each design cell. In our experiment this was 45.
 
   #Get sample parameter values for each subject
   mcmc.list=list()
@@ -300,7 +296,7 @@ get_pp_exp2 = function(converged_samples,wave_,source_){
 get_parms_exp1 = function(converged_samples){
 
   Nsubj = length(converged_samples)
-  Nsamp = 1000#dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]
+  Nsamp = 10#dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]
   mcmc.list=list()
   use = matrix(NA,Nsubj,Nsamp)
   for(s in 1:Nsubj){
