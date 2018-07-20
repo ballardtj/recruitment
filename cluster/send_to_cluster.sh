@@ -8,8 +8,8 @@ ssh uqtballa@tinaroo.rcc.uq.edu.au mv cluster recruitment
 scp data/derived/* uqtballa@tinaroo.rcc.uq.edu.au:~/recruitment/
 
 #copy dmc
-scp dmc uqtballa@tinaroo.rcc.uq.edu.au:~/recruitment/
+scp -r dmc uqtballa@tinaroo.rcc.uq.edu.au:~/recruitment/
 
 #run job submission scripts
-ssh uqtballa@tinaroo.rcc.uq.edu.au qsub -o ~/recruitment/ -e ~/recruitment/ motion.pbs
-ssh uqtballa@tinaroo.rcc.uq.edu.au qsub -o ~/recruitment/ -e ~/recruitment/ brightness.pbs
+ssh uqtballa@tinaroo.rcc.uq.edu.au qsub -o ~/recruitment/ -e ~/recruitment/ recruitment/motion.pbs
+ssh uqtballa@tinaroo.rcc.uq.edu.au qsub -o ~/recruitment/ -e ~/recruitment/ recruitment/brightness.pbs
