@@ -319,12 +319,13 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-07-19</p>
+<p><strong>Last updated:</strong> 2018-07-20</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
 <details>
-<p><summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p><summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </details>
 </li>
 <li>
@@ -347,101 +348,79 @@ div.section {
 </li>
 <li>
 <details>
-<p><summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/ballardtj/recruitment/tree/a56d2ddcd929e624f26a4f0e7148c0231213e6b6" target="_blank">a56d2dd</a> </summary></p>
+<p><summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/ballardtj/recruitment/tree/b4b33820ce30d09e77669e2cfcb0a80d91c4898a" target="_blank">b4b3382</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
-    Ignored:    .DS_Store
     Ignored:    .Rproj.user/
-    Ignored:    admin/.DS_Store
-    Ignored:    analysis/.DS_Store
-    Ignored:    data/.DS_Store
-    Ignored:    data/raw/.DS_Store
-    Ignored:    data/raw/exp1_motion/.DS_Store
-    Ignored:    data/raw/exp2_brightness/.DS_Store
-    Ignored:    data/raw/pilot_data/Pilot1-Brightness/.RData
-    Ignored:    data/raw/pilot_data/Pilot1-Brightness/.Rhistory
-    Ignored:    data/raw/pilot_data/Pilot2-Brightness/.RData
-    Ignored:    data/raw/pilot_data/Pilot2-Brightness/.Rhistory
-    Ignored:    data/raw/pilot_data/Pilot4-Brightness/.RData
-    Ignored:    data/raw/pilot_data/Pilot4-Brightness/.Rhistory
-    Ignored:    data/raw/pilot_data/Pilot5-Brightness/.RData
-    Ignored:    data/raw/pilot_data/Pilot5-Brightness/.Rhistory
-    Ignored:    processing/.DS_Store
-
-Untracked files:
-    Untracked:  analysis/convergence.Rmd
-    Untracked:  analysis/fits.Rmd
-    Untracked:  analysis/parameters.Rmd
-    Untracked:  analysis/test.Rmd
-    Untracked:  dmc/
-    Untracked:  docs/figure/
-    Untracked:  processing/0_functions.R
-
-Unstaged changes:
-    Deleted:    processing/dmc/dmc.R
-    Deleted:    processing/dmc/dmc_analysis.R
-    Deleted:    processing/dmc/dmc_hierarchical.R
-    Deleted:    processing/dmc/dmc_hierarchical_ES.R
-    Deleted:    processing/dmc/dmc_model.R
-    Deleted:    processing/dmc/dmc_plotting.R
-    Deleted:    processing/dmc/dmc_sampling.R
-    Deleted:    processing/dmc/file_utils.R
-    Deleted:    processing/dmc/models/DDM/ddm.R
-    Deleted:    processing/dmc/models/DDM/dists.R
-    Deleted:    processing/dmc/models/EXG-SS/dists.R
-    Deleted:    processing/dmc/models/EXG-SS/dmc_6_5_SS_EXG34probit.R
-    Deleted:    processing/dmc/models/EXG-SS/dmc_6_5_SS_EXG3probit.R
-    Deleted:    processing/dmc/models/EXG-SS/exgSS.R
-    Deleted:    processing/dmc/models/EXG-SS/exgSS_N.R
-    Deleted:    processing/dmc/models/EXG-SS/exgSSprobit.R
-    Deleted:    processing/dmc/models/EXG-SS/exgSSprobitN.R
-    Deleted:    processing/dmc/models/EXG-SS/exgSSrobust.R
-    Deleted:    processing/dmc/models/LBA-GoFailure/dists.R
-    Deleted:    processing/dmc/models/LBA-GoFailure/lba_Bgf.R
-    Deleted:    processing/dmc/models/LBA-GoNoGo/dists.R
-    Deleted:    processing/dmc/models/LBA-GoNoGo/lba_Bgng.R
-    Deleted:    processing/dmc/models/LBA-GoNoGo/lba_Bgngrobust.R
-    Deleted:    processing/dmc/models/LBA-T0dists/dists.R
-    Deleted:    processing/dmc/models/LBA-T0dists/lba_B_gamma.R
-    Deleted:    processing/dmc/models/LBA-T0dists/lba_B_gammaMR.R
-    Deleted:    processing/dmc/models/LBA-T0dists/lba_B_lnorm.R
-    Deleted:    processing/dmc/models/LBA-pda/dists.R
-    Deleted:    processing/dmc/models/LBA-pda/lba_B.R
-    Deleted:    processing/dmc/models/LBA-pda/plba_B.R
-    Deleted:    processing/dmc/models/LBA/dists.R
-    Deleted:    processing/dmc/models/LBA/lba.R
-    Deleted:    processing/dmc/models/LBA/lbaBp2_lesson.R
-    Deleted:    processing/dmc/models/LBA/lbaN_B.R
-    Deleted:    processing/dmc/models/LBA/lbaN_B_ncl.R
-    Deleted:    processing/dmc/models/LBA/lba_B.R
-    Deleted:    processing/dmc/models/LBA/lba_B1v.R
-    Deleted:    processing/dmc/models/LBA/lba_B2v.R
-    Deleted:    processing/dmc/models/LBA/lba_B_T^-1_D.R
-    Deleted:    processing/dmc/models/LBA/lba_B_T^-1_D_lesson.R
-    Deleted:    processing/dmc/models/LBA/lba_Bdv.R
-    Deleted:    processing/dmc/models/LBA/lba_Bdv_lesson.R
-    Deleted:    processing/dmc/models/LBA/lba_Bp2.R
-    Deleted:    processing/dmc/models/LBA/lba_Bup.R
-    Deleted:    processing/dmc/models/LBA/lba_mean_v_T^-1.R
-    Deleted:    processing/dmc/models/LNR-GoNoGo/dists.R
-    Deleted:    processing/dmc/models/LNR-GoNoGo/lnrgng.R
-    Deleted:    processing/dmc/models/LNR-GoNoGo/lnrgngrobust.R
-    Deleted:    processing/dmc/models/LNR-pda/dists.R
-    Deleted:    processing/dmc/models/LNR-pda/lnr.R
-    Deleted:    processing/dmc/models/LNR/dists.R
-    Deleted:    processing/dmc/models/LNR/lnr.R
-    Deleted:    processing/dmc/models/LNR/lnrPP.R
-    Deleted:    processing/dmc/models/LNR/lnr_dr.R
-    Deleted:    processing/dmc/models/Wald/dists.R
-    Deleted:    processing/dmc/models/Wald/pnrwald.R
-    Deleted:    processing/dmc/models/Wald/wald.R
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
 </details>
 </li>
 </ul>
+<details>
+<summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/ballardtj/recruitment/blob/e1e0b5827d278ae84af589537f0c3847557b7d34/analysis/test.Rmd" target="_blank">e1e0b58</a>
+</td>
+<td style="text-align:left;">
+ballardtj
+</td>
+<td style="text-align:left;">
+2018-07-19
+</td>
+<td style="text-align:left;">
+moving stuff around2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/ballardtj/recruitment/e1e0b5827d278ae84af589537f0c3847557b7d34/docs/test.html" target="_blank">e1e0b58</a>
+</td>
+<td style="text-align:left;">
+ballardtj
+</td>
+<td style="text-align:left;">
+2018-07-19
+</td>
+<td style="text-align:left;">
+moving stuff around2
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+</details>
 <hr />
 <pre class="r"><code>library(ggplot2)
 for (i in 1:2){
@@ -451,13 +430,75 @@ print(ggplot(data=cars) + geom_point(aes(x=speed,y=dist)))
 cat(&#39;\n&#39;) 
 }</code></pre>
 <p>#This is a heading for 1 <img src="figure/test.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<details>
+<summary><em>Expand here to see past versions of unnamed-chunk-1-1.png:</em></summary>
+<table style = "border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/ballardtj/recruitment/blob/e1e0b5827d278ae84af589537f0c3847557b7d34/docs/figure/test.Rmd/unnamed-chunk-1-1.png" target="_blank">e1e0b58</a>
+</td>
+<td style="text-align:left;">
+ballardtj
+</td>
+<td style="text-align:left;">
+2018-07-19
+</td>
+</tr>
+</tbody>
+</table>
+</details>
 <p>#This is a heading for 2 <img src="figure/test.Rmd/unnamed-chunk-1-2.png" width="672" style="display: block; margin: auto;" /></p>
+<details>
+<summary><em>Expand here to see past versions of unnamed-chunk-1-2.png:</em></summary>
+<table style = "border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="https://github.com/ballardtj/recruitment/blob/e1e0b5827d278ae84af589537f0c3847557b7d34/docs/figure/test.Rmd/unnamed-chunk-1-2.png" target="_blank">e1e0b58</a>
+</td>
+<td style="text-align:left;">
+ballardtj
+</td>
+<td style="text-align:left;">
+2018-07-19
+</td>
+</tr>
+</tbody>
+</table>
+</details>
 <div id="session-information" class="section level2">
 <h2>Session information</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.5.1 (2018-07-02)
 Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS High Sierra 10.13.3
+Running under: OS X El Capitan 10.11.6
 
 Matrix products: default
 BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
