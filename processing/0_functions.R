@@ -148,7 +148,7 @@ get_pp_exp1 = function(converged_samples,wave_,source_,Nsamp=100,Nreps=50){
 
 
 
-get_pp_exp2 = function(converged_samples,wave_,source_,Nsamp=100){
+get_pp_exp2 = function(converged_samples,wave_,source_,Nsamp=100,Nreps=50){
 
   collapse<-function(data,design){
     quant = data %>%
