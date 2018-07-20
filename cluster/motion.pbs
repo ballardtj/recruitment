@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#
+
+#PBS -A UQ-SBS-Psy
+
+#PBS -l nodes=1:ppn=8:intel,walltime=100:00:00,mem=40GB
+
+#PBS -J 1-6
+
+R
+
+R CMD BATCH --no-save --no-restore --$PBS_ARRAY_INDEX $HOME/recruitment/4a_sampling.R $HOME/recruitment/4a_sampling_$PBS_ARRAY_INDEX.Rout
