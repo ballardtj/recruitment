@@ -14,7 +14,7 @@ for (wave in c('early','late')){
   cat(paste('##',wave))
   for (group in c('firstyear','community','mturk')){
     cat('\n') 
-    cat(paste('###',group))
+    cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
     
@@ -56,44 +56,48 @@ for (wave in c('early','late')){
 # Experiment 2 - Brightness
 
 ```{r, results='asis',echo=FALSE,message=FALSE}
-# source("processing/0_functions.R")
-# for (wave in c('early','late')){
-#   cat('\n')  
-#   cat(paste('##',wave))
-#   for (group in c('firstyear','community','mturk')){
-#     cat('\n') 
-#     cat(paste('###',group))
-#     #load data for relevant group
-#     load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
-#     
-#     #get posterior predictives
-#     pp_data = get_pp_exp2(converged_samples,wave,group)
-# 
-#     #plot accuracy data
-#     ggplot(data=pp_data,aes(x=Cont,y=prop.mid,group=interaction(source,R),colour=source)) +
-#     geom_line(size=1) +
-#     geom_errorbar(aes(ymin=prop.lower,ymax=prop.upper),width=0.1,size=1) +
-#     facet_grid(St~Emph) +
-#     labs(x=" ",y="Proportion of Responses",colour="Source") +
-#     theme_minimal()
-# 
-#     #plot RT data
-#     ggplot(data=pp_data,aes(x=Cont,group=source,colour=source)) +
-#     geom_line(aes(y=q1.mid),size=0.75) +
-#     geom_errorbar(aes(ymin=q1.lower,ymax=q1.upper),width=0.1,size=0.75) +
-#     geom_line(aes(y=q3.mid),size=0.75) +
-#     geom_errorbar(aes(ymin=q3.lower,ymax=q3.upper),width=0.1,size=0.75) +
-#     geom_line(aes(y=q5.mid),size=0.75) +
-#     geom_errorbar(aes(ymin=q5.lower,ymax=q5.upper),width=0.1,size=0.75) +
-#     geom_line(aes(y=q7.mid),size=0.75) +
-#     geom_errorbar(aes(ymin=q7.lower,ymax=q7.upper),width=0.1,size=0.75) +
-#     geom_line(aes(y=q9.mid),size=0.75) +
-#     geom_errorbar(aes(ymin=q9.lower,ymax=q9.upper),width=0.1,size=0.75) +
-#     facet_grid(R+St~Emph) +
-#     theme_minimal() +
-#     labs(x=" ",y="Response Time",colour="Source")
-#     cat('\n')
-#   }
-# }
+source("processing/0_functions.R")
+for (wave in c('early','late')){
+  cat('\n')
+  cat(paste('##',wave))
+  for (group in c('firstyear','community','mturk')){
+    cat('\n')
+    cat(paste('####',group))
+    #load data for relevant group
+    load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
+    
+    #get posterior predictives
+    pp_data = get_pp_exp2(converged_samples,wave,group)
+    
+    #plot accuracy data
+    print(
+      ggplot(data=pp_data,aes(x=Cont,y=prop.mid,group=interaction(source,R),colour=source)) +
+        geom_line(size=1) +
+        geom_errorbar(aes(ymin=prop.lower,ymax=prop.upper),width=0.1,size=1) +
+        facet_grid(St~Emph) +
+        labs(x=" ",y="Proportion of Responses",colour="Source") +
+        theme_minimal()
+    )
+    
+    #plot RT data
+    print(
+      ggplot(data=pp_data,aes(x=Cont,group=source,colour=source)) +
+        geom_line(aes(y=q1.mid),size=0.75) +
+        geom_errorbar(aes(ymin=q1.lower,ymax=q1.upper),width=0.1,size=0.75) +
+        geom_line(aes(y=q3.mid),size=0.75) +
+        geom_errorbar(aes(ymin=q3.lower,ymax=q3.upper),width=0.1,size=0.75) +
+        geom_line(aes(y=q5.mid),size=0.75) +
+        geom_errorbar(aes(ymin=q5.lower,ymax=q5.upper),width=0.1,size=0.75) +
+        geom_line(aes(y=q7.mid),size=0.75) +
+        geom_errorbar(aes(ymin=q7.lower,ymax=q7.upper),width=0.1,size=0.75) +
+        geom_line(aes(y=q9.mid),size=0.75) +
+        geom_errorbar(aes(ymin=q9.lower,ymax=q9.upper),width=0.1,size=0.75) +
+        facet_grid(R+St~Emph) +
+        theme_minimal() +
+        labs(x=" ",y="Response Time",colour="Source")
+    )
+    cat('\n')
+  }
+}
 ```
 

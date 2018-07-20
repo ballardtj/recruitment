@@ -7,7 +7,7 @@ output:
 
 # Experiment 1 - Motion
 
-```{r, results='asis',echo=FALSE,message=FALSE}
+```{r, echo=FALSE,message=FALSE}
 source("processing/0_functions.R")
 
 mean_v = list()
@@ -31,3 +31,14 @@ for (wave in c('early','late')){
   }
 }
 ```
+
+## Mean Drift Rate (v)
+
+```{r, echo=FALSE,message=FALSE}
+mean_v = bind_rows(mean_v)
+print(head(mean_v))
+```
+
+
+
+
