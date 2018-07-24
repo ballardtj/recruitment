@@ -5,58 +5,58 @@ output:
     df_print: paged
 ---
 
+```{r, results='asis',echo=FALSE,message=FALSE}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+```
+
 # Experiment 1 - Motion
 
+Note: The white dots represent the data. The error bars represent the 95% credible interval of the posteror predictive distribution.
 ```{r, results='asis',echo=FALSE,message=FALSE}
-source("processing/0_functions.R")
+
 for (wave in c('early','late')){
-  cat('\n')  
+  cat('\n')
   cat(paste('##',wave))
   for (group in c('firstyear','community','mturk')){
-    cat('\n') 
+    cat('\n')
     cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
+    pp = h.post.predict.dmc(converged_samples, gglist=TRUE,probs.gglist =c(0.1,0.3,0.5,0.7,0.9),cores=7)
+    pp_gg = attr(attr(pp, "av"), "gglist")
     
-    #get posterior predictives
-    pp_data = get_pp_exp1(converged_samples,wave,group)
-
-    #plot accuracy data
+    #Give factor levels clearer names
+    pp_gg$pps$Coh = factor(pp_gg$pps$Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard'))
+    pp_gg$pps$St = factor(pp_gg$pps$St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion'))
+    pp_gg$pps$Emph = factor(pp_gg$pps$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))                    
     print(
-      ggplot(data=pp_data,aes(x=Coh,y=prop.mid,group=interaction(source,R),colour=source)) +
-      geom_line(size=1) +
-      geom_errorbar(aes(ymin=prop.lower,ymax=prop.upper),width=0.1,size=1) +
-      facet_grid(St~Emph) +
-      labs(x=" ",y="Proportion of Responses",colour="Source") +
-      theme_minimal()
+      ggplot(data=pp_gg$pps,aes(x=Coh,y=median,group=R)) +
+        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
+        geom_point(aes(y= data), pch=21, size=2, colour="black") +
+        geom_line(aes(y=data), linetype=2) + ylab("Response Proportion") + xlab('Difficulty') +
+        facet_grid(Emph~St) + theme_minimal()
     )
-
-    #plot RT data
+    
+    #Give factor levels clearer names
+    pp_gg$RTs$Coh = factor(pp_gg$RTs$Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard'))
+    pp_gg$RTs$St = factor(pp_gg$RTs$St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion'))
+    pp_gg$RTs$Emph = factor(pp_gg$RTs$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))          
+    
     print(
-      ggplot(data=pp_data,aes(x=Coh,group=source,colour=source)) +
-      geom_line(aes(y=q1.mid),size=0.75) +
-      geom_errorbar(aes(ymin=q1.lower,ymax=q1.upper),width=0.1,size=0.75) +
-      geom_line(aes(y=q3.mid),size=0.75) +
-      geom_errorbar(aes(ymin=q3.lower,ymax=q3.upper),width=0.1,size=0.75) +
-      geom_line(aes(y=q5.mid),size=0.75) +
-      geom_errorbar(aes(ymin=q5.lower,ymax=q5.upper),width=0.1,size=0.75) +
-      geom_line(aes(y=q7.mid),size=0.75) +
-      geom_errorbar(aes(ymin=q7.lower,ymax=q7.upper),width=0.1,size=0.75) +
-      geom_line(aes(y=q9.mid),size=0.75) +
-      geom_errorbar(aes(ymin=q9.lower,ymax=q9.upper),width=0.1,size=0.75) +
-      facet_grid(R+St~Emph) +
-      theme_minimal() +
-      labs(x=" ",y="Response Time",colour="Source")
+      ggplot(data=pp_gg$RTs,aes(x=Coh,y=median,group=quantile)) +
+        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
+        geom_point(aes(y= data), pch=21, size=2, colour="black") +
+        geom_line(aes(y=data), linetype=2) + ylab("Response Time (s)") + xlab('Difficulty') +
+        facet_grid(Emph~St+R) + theme_minimal()
     )
-    cat('\n')
   }
 }
 ```
-
-# Experiment 2 - Brightness
+# Experiment 1 - Motion
 
 ```{r, results='asis',echo=FALSE,message=FALSE}
-source("processing/0_functions.R")
+
 for (wave in c('early','late')){
   cat('\n')
   cat(paste('##',wave))
@@ -65,38 +65,33 @@ for (wave in c('early','late')){
     cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
+    pp = h.post.predict.dmc(converged_samples, gglist=TRUE,probs.gglist =c(0.1,0.3,0.5,0.7,0.9),cores=7)
+    pp_gg = attr(attr(pp, "av"), "gglist")
     
-    #get posterior predictives
-    pp_data = get_pp_exp2(converged_samples,wave,group)
-    
-    #plot accuracy data
+    #Give factor levels clearer names
+    pp_gg$pps$Cont = factor(pp_gg$pps$Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard'))
+    pp_gg$pps$St = factor(pp_gg$pps$St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch'))
+    pp_gg$pps$Emph = factor(pp_gg$pps$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))                    
     print(
-      ggplot(data=pp_data,aes(x=Cont,y=prop.mid,group=interaction(source,R),colour=source)) +
-        geom_line(size=1) +
-        geom_errorbar(aes(ymin=prop.lower,ymax=prop.upper),width=0.1,size=1) +
-        facet_grid(St~Emph) +
-        labs(x=" ",y="Proportion of Responses",colour="Source") +
-        theme_minimal()
+      ggplot(data=pp_gg$pps,aes(x=Cont,y=median,group=R)) +
+        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
+        geom_point(aes(y= data), pch=21, size=2, colour="black") +
+        geom_line(aes(y=data), linetype=2) + ylab("Response Proportion") + xlab('Difficulty') +
+        facet_grid(Emph~St) + theme_minimal()
     )
     
-    #plot RT data
+    #Give factor levels clearer names
+    pp_gg$RTs$Cont = factor(pp_gg$RTs$Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard'))
+    pp_gg$RTs$St = factor(pp_gg$RTs$St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch'))
+    pp_gg$RTs$Emph = factor(pp_gg$RTs$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))          
+    
     print(
-      ggplot(data=pp_data,aes(x=Cont,group=source,colour=source)) +
-        geom_line(aes(y=q1.mid),size=0.75) +
-        geom_errorbar(aes(ymin=q1.lower,ymax=q1.upper),width=0.1,size=0.75) +
-        geom_line(aes(y=q3.mid),size=0.75) +
-        geom_errorbar(aes(ymin=q3.lower,ymax=q3.upper),width=0.1,size=0.75) +
-        geom_line(aes(y=q5.mid),size=0.75) +
-        geom_errorbar(aes(ymin=q5.lower,ymax=q5.upper),width=0.1,size=0.75) +
-        geom_line(aes(y=q7.mid),size=0.75) +
-        geom_errorbar(aes(ymin=q7.lower,ymax=q7.upper),width=0.1,size=0.75) +
-        geom_line(aes(y=q9.mid),size=0.75) +
-        geom_errorbar(aes(ymin=q9.lower,ymax=q9.upper),width=0.1,size=0.75) +
-        facet_grid(R+St~Emph) +
-        theme_minimal() +
-        labs(x=" ",y="Response Time",colour="Source")
+      ggplot(data=pp_gg$RTs,aes(x=Cont,y=median,group=quantile)) +
+        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
+        geom_point(aes(y= data), pch=21, size=2, colour="black") +
+        geom_line(aes(y=data), linetype=2) + ylab("Response Time (s)") + xlab('Difficulty') +
+        facet_grid(Emph~St+R) + theme_minimal()
     )
-    cat('\n')
   }
 }
 ```
