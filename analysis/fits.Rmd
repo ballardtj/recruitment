@@ -6,13 +6,15 @@ output:
 ---
 
 ```{r, results='asis',echo=FALSE,message=FALSE}
+library(tidyverse)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 ```
 
+Note: The error bars for the model represent the 95% credible interval of the posteror predictive distribution. The error bars for the data represent + or - 1 standard error.
+
 # Experiment 1 - Motion
 
-Note: The white dots represent the data. The error bars represent the 95% credible interval of the posteror predictive distribution.
 ```{r, results='asis',echo=FALSE,message=FALSE}
 
 for (wave in c('early','late')){
@@ -23,37 +25,126 @@ for (wave in c('early','late')){
     cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
-    pp = h.post.predict.dmc(converged_samples, gglist=TRUE,probs.gglist =c(0.1,0.3,0.5,0.7,0.9),cores=7)
-    pp_gg = attr(attr(pp, "av"), "gglist")
+  
+    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=7)
     
-    #Give factor levels clearer names
-    pp_gg$pps$Coh = factor(pp_gg$pps$Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard'))
-    pp_gg$pps$St = factor(pp_gg$pps$St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion'))
-    pp_gg$pps$Emph = factor(pp_gg$pps$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))                    
-    print(
-      ggplot(data=pp_gg$pps,aes(x=Coh,y=median,group=R)) +
-        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
-        geom_point(aes(y= data), pch=21, size=2, colour="black") +
-        geom_line(aes(y=data), linetype=2) + ylab("Response Proportion") + xlab('Difficulty') +
+    #plot proportion correct
+    sim = do.call(rbind, pp) 
+    sim = sim %>%
+      mutate(s = rownames(sim),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Coh,Emph,R,reps) %>%
+      summarise(count = n()) %>%
+      group_by(s,St,Coh,Emph,reps) %>%
+      mutate(prop = count/sum(count)) %>%
+      group_by(St,Coh,Emph,R,reps) %>%
+      summarise(prop = mean(prop)) %>%
+      group_by(St,Coh,Emph,R) %>%
+      summarise(prop_m = mean(prop),
+                prop_l = quantile(prop,0.025),
+                prop_u = quantile(prop,0.975),
+                source = "Model")
+    
+    data = lapply(pp, function(x) attr(x, "data"))
+    data = do.call(rbind, data) 
+    data = data %>%
+      mutate(s = rownames(data),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Coh,Emph,R) %>%
+      summarise(count = n()) %>%
+      group_by(s,St,Coh,Emph) %>%
+      mutate(prop = count/sum(count)) %>%
+      group_by(St,Coh,Emph,R) %>%
+      summarise(prop_m = mean(prop),
+                prop_l = prop_m - sd(prop)/sqrt(n()),
+                prop_u = prop_m + sd(prop)/sqrt(n()),
+                source = "Data")
+     
+    pp_smry =  bind_rows(data,sim) %>%
+      ungroup() %>%
+      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
+        
+     print(
+      ggplot(data=pp_smry,aes(x=Coh,y=prop_m,group=R,colour=source)) +
+        geom_errorbar(aes(ymax = prop_u, ymin = prop_l), width= 0.2) +
+        geom_point(pch=21, size=2) +
+        geom_line(aes(group=interaction(R,source))) +
+        ylab("Response Proportion") + xlab('Difficulty') +
         facet_grid(Emph~St) + theme_minimal()
-    )
-    
-    #Give factor levels clearer names
-    pp_gg$RTs$Coh = factor(pp_gg$RTs$Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard'))
-    pp_gg$RTs$St = factor(pp_gg$RTs$St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion'))
-    pp_gg$RTs$Emph = factor(pp_gg$RTs$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))          
-    
+    )   
+     
+     
+    #plot response time distribution
+    sim = do.call(rbind, pp) 
+    sim = sim %>%
+      mutate(s = rownames(sim),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Coh,Emph,R,reps) %>%
+      #count number of responses of each type in each condition
+      mutate(count = n()) %>%
+      #filter out responses that were made less than 5 times
+      filter(count >= 5) %>%
+      #generate quantiles 
+      summarise(q10 = quantile(RT,.1),
+                q30 = quantile(RT,.3),
+                q50 = quantile(RT,.5),
+                q70 = quantile(RT,.7),
+                q90 = quantile(RT,.9)) %>%
+      gather(key=quantile,value=RT,q10:q90) %>%
+      #average across subjects
+      group_by(St,Coh,Emph,R,quantile,reps) %>%
+      summarise(RT = mean(RT)) %>%
+      #get CIs
+      group_by(St,Coh,Emph,R,quantile) %>%
+      summarise(RT_m = mean(RT),
+                RT_l = quantile(RT,0.025),
+                RT_u = quantile(RT,0.975),
+                source = "Model")  
+        
+    data = lapply(pp, function(x) attr(x, "data"))
+    data = do.call(rbind, data) 
+    data = data %>%
+      mutate(s = rownames(data),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Coh,Emph,R) %>%
+      #count number of responses of each type in each condition
+      mutate(count = n()) %>%
+      #filter out responses that were made less than 5 times
+      filter(count >= 5) %>%
+      #generate quantiles 
+      summarise(q10 = quantile(RT,.1),
+                q30 = quantile(RT,.3),
+                q50 = quantile(RT,.5),
+                q70 = quantile(RT,.7),
+                q90 = quantile(RT,.9)) %>%
+      gather(key=quantile,value=RT,q10:q90) %>%
+      #average across subjects
+      group_by(St,Coh,Emph,R,quantile) %>%
+      summarise(RT_m = mean(RT),
+                RT_l = RT_m - sd(RT)/sqrt(n()),
+                RT_u = RT_m + sd(RT)/sqrt(n()),
+                source = "Data")  
+   
+    pp_smry =  bind_rows(data,sim) %>%
+      ungroup() %>%
+      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
+        
     print(
-      ggplot(data=pp_gg$RTs,aes(x=Coh,y=median,group=quantile)) +
-        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
-        geom_point(aes(y= data), pch=21, size=2, colour="black") +
-        geom_line(aes(y=data), linetype=2) + ylab("Response Time (s)") + xlab('Difficulty') +
+      ggplot(data=pp_smry,aes(x=Coh,y=RT_m,group=quantile,colour=source)) +
+        geom_errorbar(aes(ymax = RT_u, ymin = RT_l), width= 0.2) +
+        geom_point(pch=21, size=2) +
+        geom_line(aes(group=interaction(quantile,source))) +
+        ylab("Response Time (s)") + xlab('Difficulty') +
         facet_grid(Emph~St+R) + theme_minimal()
     )
-  }
+  }   
 }
 ```
-# Experiment 1 - Motion
+# Experiment 2 - Brightness
 
 ```{r, results='asis',echo=FALSE,message=FALSE}
 
@@ -65,31 +156,119 @@ for (wave in c('early','late')){
     cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
-    pp = h.post.predict.dmc(converged_samples, gglist=TRUE,probs.gglist =c(0.1,0.3,0.5,0.7,0.9),cores=7)
-    pp_gg = attr(attr(pp, "av"), "gglist")
+    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=7)
     
-    #Give factor levels clearer names
-    pp_gg$pps$Cont = factor(pp_gg$pps$Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard'))
-    pp_gg$pps$St = factor(pp_gg$pps$St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch'))
-    pp_gg$pps$Emph = factor(pp_gg$pps$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))                    
-    print(
-      ggplot(data=pp_gg$pps,aes(x=Cont,y=median,group=R)) +
-        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
-        geom_point(aes(y= data), pch=21, size=2, colour="black") +
-        geom_line(aes(y=data), linetype=2) + ylab("Response Proportion") + xlab('Difficulty') +
+    #plot proportion correct
+    sim = do.call(rbind, pp) 
+    sim = sim %>%
+      mutate(s = rownames(sim),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Cont,Emph,R,reps) %>%
+      summarise(count = n()) %>%
+      group_by(s,St,Cont,Emph,reps) %>%
+      mutate(prop = count/sum(count)) %>%
+      group_by(St,Cont,Emph,R,reps) %>%
+      summarise(prop = mean(prop)) %>%
+      group_by(St,Cont,Emph,R) %>%
+      summarise(prop_m = mean(prop),
+                prop_l = quantile(prop,0.025),
+                prop_u = quantile(prop,0.975),
+                source = "Model")
+    
+    data = lapply(pp, function(x) attr(x, "data"))
+    data = do.call(rbind, data) 
+    data = data %>%
+      mutate(s = rownames(data),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Cont,Emph,R) %>%
+      summarise(count = n()) %>%
+      group_by(s,St,Cont,Emph) %>%
+      mutate(prop = count/sum(count)) %>%
+      group_by(St,Cont,Emph,R) %>%
+      summarise(prop_m = mean(prop),
+                prop_l = prop_m - sd(prop)/sqrt(n()),
+                prop_u = prop_m + sd(prop)/sqrt(n()),
+                source = "Data")
+     
+    pp_smry =  bind_rows(data,sim) %>%
+      ungroup() %>%
+      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
+        
+     print(
+      ggplot(data=pp_smry,aes(x=Cont,y=prop_m,group=R,colour=source)) +
+        geom_errorbar(aes(ymax = prop_u, ymin = prop_l), width= 0.2) +
+        geom_point(pch=21, size=2) +
+        geom_line(aes(group=interaction(R,source))) +
+        ylab("Response Proportion") + xlab('Difficulty') +
         facet_grid(Emph~St) + theme_minimal()
-    )
-    
-    #Give factor levels clearer names
-    pp_gg$RTs$Cont = factor(pp_gg$RTs$Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard'))
-    pp_gg$RTs$St = factor(pp_gg$RTs$St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch'))
-    pp_gg$RTs$Emph = factor(pp_gg$RTs$Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis'))          
-    
+    )   
+     
+     
+    #plot response time distribution
+    sim = do.call(rbind, pp) 
+    sim = sim %>%
+      mutate(s = rownames(sim),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Cont,Emph,R,reps) %>%
+      #count number of responses of each type in each condition
+      mutate(count = n()) %>%
+      #filter out responses that were made less than 5 times
+      filter(count >= 5) %>%
+      #generate quantiles 
+      summarise(q10 = quantile(RT,.1),
+                q30 = quantile(RT,.3),
+                q50 = quantile(RT,.5),
+                q70 = quantile(RT,.7),
+                q90 = quantile(RT,.9)) %>%
+      gather(key=quantile,value=RT,q10:q90) %>%
+      #average across subjects
+      group_by(St,Cont,Emph,R,quantile,reps) %>%
+      summarise(RT = mean(RT)) %>%
+      #get CIs
+      group_by(St,Cont,Emph,R,quantile) %>%
+      summarise(RT_m = mean(RT),
+                RT_l = quantile(RT,0.025),
+                RT_u = quantile(RT,0.975),
+                source = "Model")  
+        
+    data = lapply(pp, function(x) attr(x, "data"))
+    data = do.call(rbind, data) 
+    data = data %>%
+      mutate(s = rownames(data),
+             s = gsub("\\..*","",s)) %>%
+      group_by(s,St,Cont,Emph,R) %>%
+      #count number of responses of each type in each condition
+      mutate(count = n()) %>%
+      #filter out responses that were made less than 5 times
+      filter(count >= 5) %>%
+      #generate quantiles 
+      summarise(q10 = quantile(RT,.1),
+                q30 = quantile(RT,.3),
+                q50 = quantile(RT,.5),
+                q70 = quantile(RT,.7),
+                q90 = quantile(RT,.9)) %>%
+      gather(key=quantile,value=RT,q10:q90) %>%
+      #average across subjects
+      group_by(St,Cont,Emph,R,quantile) %>%
+      summarise(RT_m = mean(RT),
+                RT_l = RT_m - sd(RT)/sqrt(n()),
+                RT_u = RT_m + sd(RT)/sqrt(n()),
+                source = "Data")  
+   
+    pp_smry =  bind_rows(data,sim) %>%
+      ungroup() %>%
+      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
+        
     print(
-      ggplot(data=pp_gg$RTs,aes(x=Cont,y=median,group=quantile)) +
-        geom_errorbar(aes(ymax = upper, ymin = lower), width= 0.2) +
-        geom_point(aes(y= data), pch=21, size=2, colour="black") +
-        geom_line(aes(y=data), linetype=2) + ylab("Response Time (s)") + xlab('Difficulty') +
+      ggplot(data=pp_smry,aes(x=Cont,y=RT_m,group=quantile,colour=source)) +
+        geom_errorbar(aes(ymax = RT_u, ymin = RT_l), width= 0.2) +
+        geom_point(pch=21, size=2) +
+        geom_line(aes(group=interaction(quantile,source))) +
+        ylab("Response Time (s)") + xlab('Difficulty') +
         facet_grid(Emph~St+R) + theme_minimal()
     )
   }
