@@ -15,7 +15,7 @@ Note: The error bars for the model represent the 95% credible interval of the po
 
 # Experiment 1 - Motion
 
-```{r, results='asis',echo=FALSE,message=FALSE}
+```{r, results='asis',echo=FALSE,message=FALSE,results='hide',fig.keep='all'}
 
 for (wave in c('early','late')){
   cat('\n')
@@ -146,7 +146,7 @@ for (wave in c('early','late')){
 ```
 # Experiment 2 - Brightness
 
-```{r, results='asis',echo=FALSE,message=FALSE}
+```{r, results='asis',echo=FALSE,message=FALSE,results='hide',fig.keep='all'}
 
 for (wave in c('early','late')){
   cat('\n')
@@ -193,7 +193,7 @@ for (wave in c('early','late')){
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
       mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
-             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             St = factor(St,levels=c('light','dark'),labels=c('Leftward Motion','Rightward Motion')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
      print(
@@ -260,7 +260,7 @@ for (wave in c('early','late')){
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
       mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
-             St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
+             St = factor(St,levels=c('light','dark'),labels=c('Leftward Motion','Rightward Motion')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
     print(
