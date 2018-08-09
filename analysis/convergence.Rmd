@@ -11,7 +11,7 @@ output:
 
 ### First Years
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_firstyear_early.RData")
@@ -22,7 +22,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Community
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_community_early.RData")
@@ -33,7 +33,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Mechanical Turk
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_mturk_early.RData")
@@ -46,7 +46,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### First Years
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_firstyear_late.RData")
@@ -57,7 +57,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Community
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_community_late.RData")
@@ -68,7 +68,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Mechanical Turk
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_mturk_late.RData")
@@ -84,7 +84,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### First Years
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_firstyear_early.RData")
@@ -95,7 +95,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Community
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_community_early.RData")
@@ -106,7 +106,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Mechanical Turk
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_mturk_early.RData")
@@ -119,7 +119,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### First Years
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_firstyear_late.RData")
@@ -130,7 +130,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Community
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_community_late.RData")
@@ -141,7 +141,7 @@ plot.dmc(converged_samples,hyper=T)
 
 ### Mechanical Turk
 
-```{r}
+```{r echo=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_mturk_late.RData")
