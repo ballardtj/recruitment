@@ -5,6 +5,10 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "Convergence"
+      href: convergence.html
+    - text: "Predictives"
+      href: predictives.html
     - text: "About"
       href: about.html
     - text: "License"
