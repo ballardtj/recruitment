@@ -15,7 +15,7 @@ Note: The error bars for the model represent the 95% credible interval of the po
 
 # Experiment 1 - Motion
 
-```{r, results='asis',echo=FALSE,message=FALSE,results='hide',fig.keep='all'}
+```{r, results='asis',echo=FALSE,message=FALSE}
 
 for (wave in c('early','late')){
   cat('\n')
@@ -146,7 +146,7 @@ for (wave in c('early','late')){
 ```
 # Experiment 2 - Brightness
 
-```{r, results='asis',echo=FALSE,message=FALSE,results='hide',fig.keep='all'}
+```{r, results='asis',echo=FALSE,message=FALSE}
 
 for (wave in c('early','late')){
   cat('\n')
