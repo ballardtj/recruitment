@@ -54,6 +54,37 @@ data = filter(survey_data,Finished=="True") %>%
          time_of_semester = factor(time_of_semester,levels=c('early','late'),labels=c('First\n3 Weeks','Final\n3 Weeks')),
          population = factor(population,levels=c('undergrads','community','mturk'),labels=c('Undergraduate Sample','Paid Local Sample','Mechanical Turk Sample')))
 
+#Subject breakdown
+subject_data = data %>%
+  group_by(subject) %>%
+  summarise(gender = gender[1],
+            age = age[1],
+            career_stage = career_stage[1],
+            years_since_phd = years_since_phd[1],
+            research_focus = research_focus[1])
+#gender
+count(subject_data,gender)
+
+#age
+count(subject_data,age) %>% data.frame()
+
+#career stage
+count(subject_data,career_stage)
+
+#number of participants with phds
+subject_data %>%
+  summarise(phds = sum(!is.na(years_since_phd)))
+
+#time since phd
+subject_data %>%
+  summarise(mean_ysp = mean(years_since_phd,na.rm=T),
+            sd_ysp = sd(years_since_phd,na.rm=T))
+
+
+subject_data %>%
+  summarise(mean_age = mean(age,na.rm=T),
+            sd_age = sd(age,na.rm=T))
+
 
 
 plot = data %>%
@@ -76,36 +107,66 @@ ggsave(file="figures/survey_results.pdf",plot=plot,height=11,width=14,units="cm"
 library(BayesFactor)
 library(xtable)
 
-options(scipen = 1)
-options(digits = 2)
+options(scipen = 10)
+options(digits = 3)
 
-result1 = extractBF(anovaBF(value ~ time_of_semester*population,whichRandom="subject", data=data[data$outcome=="Performance",]))
-result2 = extractBF(anovaBF(value ~ time_of_semester*population,whichRandom="subject", data=data[data$outcome=="Caution",]))
+bf = anovaBF(value ~ time_of_semester+population,whichRandom="subject", data=data[data$outcome=="Performance",],whichModels="all")
+result1 = rbind(extractBF(bf[1:2]),extractBF(bf[7] / bf[4]))
 
-models=c('Time of Semester','Sample','Both Main Effects','Main Effects + Interation')
+bf = anovaBF(value ~ time_of_semester+population,whichRandom="subject", data=data[data$outcome=="Caution",],whichModels="all")
+result2 = rbind(extractBF(bf[1:2]),extractBF(bf[7] / bf[4]))
 
-results = cbind(result1[,1:2],result2[1:2])
+models=c('Time of Semester','Sample','Time of Semester X Sample')
+
+results = cbind(result1[,1],result2[1])
 rownames(results)<-models
-colnames(results)<-c('BF','Error','BF','Error')
+colnames(results)<-c('Expected Performance','Expected Caution')
 latex_table=xtable(results,
-                   align=c("X",rep("c",ncol(result1))),
-                   caption="Results for the Bayesian ANOVAs on Performance and Caution",
+                   align=c("X",rep("c",ncol(results))),
+                   caption="Bayes Factor Results for the Effects of Time of Recruitment and Sample on Expected Performance and Caution",
                    label = "tab:perf_res",
-                   digits = -2)
+                   digits = 2)
 
 addtorow <- list()
-addtorow$pos <- list(-1,4)
-addtorow$command <- c("\\hline  &  \\multicolumn{2}{c}{Performance} & \\multicolumn{2}{c}{Caution}  \\\\ \\cline{2-5} ",
-                      "\\hline \\multicolumn{5}{p\\textwidth}{
-                      Note: The reported Bayes factors represent comparisons with the intercept-only model.} \\\\ ")
+addtorow$pos <- list(3)
+addtorow$command <- c(
+                      "\\hline \\multicolumn{3}{p\\textwidth}{
+                      \\small{Note: The BFs for the time of semester and sample effects were calculated by comparing a model with only that main effect to an intercept-only model. The BFs for the interaction were calculated by comparing a model with both main effects and the interaction to a model with both main effects but without the interaction.}} \\\\ ")
 
 print(latex_table,
       add.to.row=addtorow,
       tabular.environment = "tabularx",
       width = "\\textwidth",
-      hline.after=c(0),
+      hline.after=c(-1,0),
       caption.placement = "top",
       math.style.exponents = TRUE)
+
+
+
+
+
+# results = cbind(result1[,1:2],result2[1:2])
+# rownames(results)<-models
+# colnames(results)<-c('BF','Error','BF','Error')
+# latex_table=xtable(results,
+#                    align=c("X",rep("c",ncol(result1))),
+#                    caption="Results for the Bayesian ANOVAs on Performance and Caution",
+#                    label = "tab:perf_res",
+#                    digits = -2)
+#
+# addtorow <- list()
+# addtorow$pos <- list(-1,3)
+# addtorow$command <- c("\\hline  &  \\multicolumn{2}{c}{Performance} & \\multicolumn{2}{c}{Caution}  \\\\ \\cline{2-5} ",
+#                       "\\hline \\multicolumn{5}{p\\textwidth}{
+#                       Note: The reported Bayes factors represent comparisons with the intercept-only model.} \\\\ ")
+#
+# print(latex_table,
+#       add.to.row=addtorow,
+#       tabular.environment = "tabularx",
+#       width = "\\textwidth",
+#       hline.after=c(0),
+#       caption.placement = "top",
+#       math.style.exponents = TRUE)
 
 #Need to manually adjust columns to delete instances of "x 10^1"
 
