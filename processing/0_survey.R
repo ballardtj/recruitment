@@ -142,8 +142,10 @@ print(latex_table,
       math.style.exponents = TRUE)
 
 
+#Get priors from analyses
 
-
+x = attr(bf,'numerator')$time_of_semester
+attr(x,'prior')
 
 # results = cbind(result1[,1:2],result2[1:2])
 # rownames(results)<-models
