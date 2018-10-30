@@ -99,6 +99,7 @@ ggplot(aes(y=value,x=time_of_semester,colour=population)) +
     labs(y='Expected Level',x='Time of Semester') +
     theme(legend.position = "none")
 
+
 ggsave(file="figures/survey_results.pdf",plot=plot,height=11,width=14,units="cm")
 
 
