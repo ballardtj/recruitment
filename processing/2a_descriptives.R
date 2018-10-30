@@ -3,6 +3,26 @@ rm(list=ls())
 #load packages
 library(tidyverse)
 
+
+#sample details
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #load data
 load("../clean_data/trimmed_data_exp1.RData")
 
