@@ -178,9 +178,9 @@ behavioural_figure <- grid.arrange(
 
 ggsave(file="figures/behavioural_results.pdf",plot=behavioural_figure,height=20,width=26,units="cm")
 
-####################################################
-### Bayes Factor Analysis of Behavioural Results ###
-####################################################
+#######################################################
+### Mixed Modelling Analysis of Behavioural Results ###
+#######################################################
 
 ### Motion experiment ###
 
@@ -191,19 +191,66 @@ motion_data = filter(combined_data,time >= 150,response>0,expt=='Motion') %>%
          difficulty = -1.5*(coherence==0.25) + -0.5*(coherence==0.20) + 0.5*(coherence==0.15) + 1.5*(coherence==0.10),
          emphasis = -1*(emphasis=="speed") + 1*(emphasis=="accuracy"))
 
-#set prior
-prior = c(
+#set accuracy prior
+accuracy_prior = c(
   set_prior("student_t(3,0,10)", class = "Intercept"),
   set_prior("student_t(3,0,10)", class = "b"),
   set_prior("student_t(3,0,10)", class = "sd")
 )
 
 #run accuracy model
-fit_accuracy = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
-                   prior = prior,
+fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+                   prior = accuracy_prior,
                    data=motion_data,
                    family=bernoulli(),
                    cores=4)
+
+save(fit,file="data/derived/fit_accuracy_motion.RData")
+
+#set rt prior
+rt_prior = c(
+  set_prior("student_t(3,0,500)", class = "Intercept"),
+  set_prior("student_t(3,0,10)", class = "b"),
+  set_prior("student_t(3,0,500)", class = "sd")
+)
+
+#run rt model
+fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+                   prior = rt_prior,
+                   data=motion_data,
+                   family=exgaussian(),
+                   cores=4)
+
+save(fit,file="data/derived/fit_rt_motion.RData")
+
+
+### Brightness experiment ###
+
+brightness_data = filter(combined_data,time >= 150,response>0,expt=='Brightness') %>%
+  mutate(local_paid = as.numeric(source=="community"),
+         online_paid = as.numeric(source=="mturk"),
+         time_of_semester = -1*(wave=="early") + 1*(wave=="late"),
+         difficulty = -1.5*(abs(brightness-0.5)==0.05) + -0.5*(abs(brightness-0.5)==0.04)  + 0.5*(abs(brightness-0.5)==0.03) + 1.5*(abs(brightness-0.5)==0.02) ,
+         emphasis = -1*(emphasis=="speed") + 1*(emphasis=="accuracy"))
+
+#run accuracy model
+fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+          prior = accuracy_prior,
+          data=brightness_data,
+          family=bernoulli(),
+          cores=4)
+
+save(fit,file="data/derived/fit_accuracy_brightness.RData")
+
+#run rt model
+fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+          prior = rt_prior,
+          data=brightness_data,
+          family=exgaussian(),
+          cores=4)
+
+save(fit,file="data/derived/fit_rt_brightness.RData")
+
 
 
 
