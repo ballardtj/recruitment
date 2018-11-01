@@ -203,7 +203,8 @@ fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty +
                    prior = accuracy_prior,
                    data=motion_data,
                    family=bernoulli(),
-                   cores=4)
+                   cores=4,
+          control=list(adapt_delta=0.99,max_treedepth=20))
 
 save(fit,file="data/derived/fit_accuracy_motion.RData")
 
@@ -219,7 +220,8 @@ fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty +
                    prior = rt_prior,
                    data=motion_data,
                    family=exgaussian(),
-                   cores=4)
+                   cores=4,
+          control=list(adapt_delta=0.99,max_treedepth=20))
 
 save(fit,file="data/derived/fit_rt_motion.RData")
 
@@ -238,7 +240,8 @@ fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty +
           prior = accuracy_prior,
           data=brightness_data,
           family=bernoulli(),
-          cores=4)
+          cores=4,
+          control=list(adapt_delta=0.99,max_treedepth=20))
 
 save(fit,file="data/derived/fit_accuracy_brightness.RData")
 
@@ -247,7 +250,8 @@ fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty +
           prior = rt_prior,
           data=brightness_data,
           family=exgaussian(),
-          cores=4)
+          cores=4,
+          control=list(adapt_delta=0.99,max_treedepth=20))
 
 save(fit,file="data/derived/fit_rt_brightness.RData")
 
