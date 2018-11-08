@@ -51,8 +51,8 @@ data = filter(survey_data,Finished=="True") %>%
   gather(key=key,value=value,performance__early__undergrads:caution__late__mturk) %>%
   separate(col=key,into=c('outcome','time_of_semester','population')) %>%
   mutate(outcome = factor(outcome,levels=c('performance','caution'),labels=c('Performance','Caution')),
-         time_of_semester = factor(time_of_semester,levels=c('early','late'),labels=c('First\n3 Weeks','Final\n3 Weeks')),
-         population = factor(population,levels=c('undergrads','community','mturk'),labels=c('Undergraduate Sample','Paid Local Sample','Mechanical Turk Sample')))
+         time_of_semester = factor(time_of_semester,levels=c('early','late'),labels=c('Early','Late')),
+         population = factor(population,levels=c('undergrads','community','mturk'),labels=c('Local, Credit','Local, Paid','Online, Paid')))
 
 #Subject breakdown
 subject_data = data %>%
@@ -103,78 +103,131 @@ ggplot(aes(y=value,x=time_of_semester,colour=population)) +
 ggsave(file="figures/survey_results.pdf",plot=plot,height=11,width=14,units="cm")
 
 
+##################################################
+### Mixed Modelling Analysis of Survey Results ###
+##################################################
+
 #Run statistical analysis and store results
-
-library(BayesFactor)
+library(brms)
 library(xtable)
+set.seed(12345)
 
-options(scipen = 10)
-options(digits = 3)
+#set prior
+brms_prior = c(
+  set_prior("student_t(3,0,10)", class = "Intercept"),
+  set_prior("student_t(3,0,10)", class = "b"),
+  set_prior("student_t(3,0,10)", class = "sd")
+)
 
-bf = anovaBF(value ~ time_of_semester+population,whichRandom="subject", data=data[data$outcome=="Performance",],whichModels="all")
-result1 = rbind(extractBF(bf[1:2]),extractBF(bf[7] / bf[4]))
+#run performance model
+performance_data = data %>%
+  filter(outcome=="Performance") %>%
+  mutate(local_paid = as.numeric(population=="Paid Local Sample"),
+         online_paid = as.numeric(population=="Mechanical Turk Sample"),
+         time_of_semester = -1*(time_of_semester =="First\n3 Weeks") + 1*(time_of_semester =="Final\n3 Weeks"))
 
-bf = anovaBF(value ~ time_of_semester+population,whichRandom="subject", data=data[data$outcome=="Caution",],whichModels="all")
-result2 = rbind(extractBF(bf[1:2]),extractBF(bf[7] / bf[4]))
+fit_performance = brm(value ~ local_paid + online_paid + time_of_semester + (1|subject),
+          prior = brms_prior,
+          data=performance_data,
+          cores=4,
+          seed = 12345,
+          control=list(adapt_delta=0.99,max_treedepth=20))
 
-models=c('Time of Semester','Sample','Time of Semester X Sample')
+#run caution model
+caution_data = data %>%
+  filter(outcome=="Caution") %>%
+  mutate(local_paid = as.numeric(population=="Paid Local Sample"),
+         online_paid = as.numeric(population=="Mechanical Turk Sample"),
+         time_of_semester = -1*(time_of_semester =="First\n3 Weeks") + 1*(time_of_semester =="Final\n3 Weeks"))
 
-results = cbind(result1[,1],result2[1])
-rownames(results)<-models
-colnames(results)<-c('Expected Performance','Expected Caution')
+fit_caution = brm(value ~ local_paid + online_paid + time_of_semester + (1|subject),
+                  prior = brms_prior,
+                  data=caution_data,
+                  cores=4,
+                  seed=12345,
+                  control=list(adapt_delta=0.99,max_treedepth=20))
+
+#calculate bayes factors using savage dickey method
+samples <- posterior_samples(fit_performance)
+bfs_perf = rep(NA,5)
+
+d_post = approxfun(density(samples$b_Intercept),rule=2) #approximate posterior density function based on sampled values
+bfs_perf[1] = dstudent_t(0,3,0,10)/d_post(0)                 #analytical density of prior at 0 divided by approximate density of posterior at 0
+
+d_post = approxfun(density(samples$b_local_paid),rule=2)
+bfs_perf[2] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$b_online_paid),rule=2)
+bfs_perf[3] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$b_time_of_semester),rule=2)
+bfs_perf[4] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$sd_subject__Intercept),rule=2)
+bfs_perf[5] = 2*dstudent_t(0,3,0,10)/d_post(0)  #numerator is multiplied by 2 because for sigma the distribution is folded at 0.
+
+d_post = approxfun(density(samples$sigma),rule=2)
+bfs_perf[6] = 2*dstudent_t(0,3,0,500)/d_post(0)  #numerator is multiplied by 2 because for sigma the distribution is folded at 0.
+
+
+#same as above for caution results
+samples <- posterior_samples(fit_caution)
+bfs_caut = rep(NA,5)
+
+d_post = approxfun(density(samples$b_Intercept),rule=2) #approximate posterior density function based on sampled values
+bfs_caut[1] = dstudent_t(0,3,0,10)/d_post(0)                 #analytical density of prior at 0 divided by approximate density of posterior at 0
+
+d_post = approxfun(density(samples$b_local_paid),rule=2)
+bfs_caut[2] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$b_online_paid),rule=2)
+bfs_caut[3] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$b_time_of_semester),rule=2)
+bfs_caut[4] = dstudent_t(0,3,0,10)/d_post(0)
+
+d_post = approxfun(density(samples$sd_subject__Intercept),rule=2)
+bfs_caut[5] = 2*dstudent_t(0,3,0,10)/d_post(0)  #numerator is multiplied by 2 because for sigma the distribution is folded at 0.
+
+d_post = approxfun(density(samples$sigma),rule=2)
+bfs_caut[6] = 2*dstudent_t(0,3,0,500)/d_post(0)  #numerator is multiplied by 2 because for sigma the distribution is folded at 0.
+
+#prepare performance results table
+results_tmp =round(
+            rbind(
+              rep(NA,6),
+              summary(fit_performance)$fixed,
+              summary(fit_performance)$random$subject,
+              summary(fit_performance)$spec_pars,
+              rep(NA,6),
+              summary(fit_caution)$fixed,
+              summary(fit_caution)$random$s,
+              summary(fit_performance)$spec_pars),
+            digits=2)
+
+results = cbind(results_tmp,round(c(NA,bfs_perf,NA,bfs_caut),2))
+
+rownames(results) <- c("Performance","Intercept","Local Paid","Online Paid","Time of Semester","Intercept SD","Residual SD",
+                       "Caution","Intercept","Local Paid","Online Paid","Time of Semester","Intercept SD","Residual SD")
+colnames(results) <- c("Estimate","SE","Lower CI","Upper CI","Eff. Sample","Rhat","BF")
+
 latex_table=xtable(results,
-                   align=c("X",rep("c",ncol(results))),
-                   caption="Bayes Factor Results for the Effects of Time of Recruitment and Sample on Expected Performance and Caution",
-                   label = "tab:perf_res",
-                   digits = 2)
+                   align=c("X",rep("r",ncol(results)-1)),
+                   caption="Results for the Bayesian Mixed Modeling Analysis of Expected Performance and Caution in Study 1",
+                   label = "tab:study1_res")
 
 addtorow <- list()
-addtorow$pos <- list(3)
-addtorow$command <- c(
-                      "\\hline \\multicolumn{3}{p\\textwidth}{
-                      \\small{Note: The BFs for the time of semester and sample effects were calculated by comparing a model with only that main effect to an intercept-only model. The BFs for the interaction were calculated by comparing a model with both main effects and the interaction to a model with both main effects but without the interaction.}} \\\\ ")
+addtorow$pos <- list(14)
+addtorow$command <- c("\\hline  \\multicolumn{8}{p\\textwidth}{Note:
+                      The lower CI and Upper CI represent the lower and upper bounds on the 95\\% credible interval.} \\\\ ")
+
 
 print(latex_table,
       add.to.row=addtorow,
       tabular.environment = "tabularx",
       width = "\\textwidth",
       hline.after=c(-1,0),
-      caption.placement = "top",
-      math.style.exponents = TRUE)
-
-
-#Get priors from analyses
-
-x = attr(bf,'numerator')$time_of_semester
-attr(x,'prior')
-
-# results = cbind(result1[,1:2],result2[1:2])
-# rownames(results)<-models
-# colnames(results)<-c('BF','Error','BF','Error')
-# latex_table=xtable(results,
-#                    align=c("X",rep("c",ncol(result1))),
-#                    caption="Results for the Bayesian ANOVAs on Performance and Caution",
-#                    label = "tab:perf_res",
-#                    digits = -2)
-#
-# addtorow <- list()
-# addtorow$pos <- list(-1,3)
-# addtorow$command <- c("\\hline  &  \\multicolumn{2}{c}{Performance} & \\multicolumn{2}{c}{Caution}  \\\\ \\cline{2-5} ",
-#                       "\\hline \\multicolumn{5}{p\\textwidth}{
-#                       Note: The reported Bayes factors represent comparisons with the intercept-only model.} \\\\ ")
-#
-# print(latex_table,
-#       add.to.row=addtorow,
-#       tabular.environment = "tabularx",
-#       width = "\\textwidth",
-#       hline.after=c(0),
-#       caption.placement = "top",
-#       math.style.exponents = TRUE)
-
-#Need to manually adjust columns to delete instances of "x 10^1"
-
-
-
+      caption.placement = "top")
 
 
 
