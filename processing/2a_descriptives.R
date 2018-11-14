@@ -190,40 +190,55 @@ motion_data = filter(combined_data,time >= 150,response>0,expt=='Motion') %>%
          time_of_semester = -1*(wave=="early") + 1*(wave=="late"),
          difficulty = -1.5*(coherence==0.25) + -0.5*(coherence==0.20) + 0.5*(coherence==0.15) + 1.5*(coherence==0.10),
          emphasis = -1*(emphasis=="speed") + 1*(emphasis=="accuracy"))
-
-#set accuracy prior
+#
+# #set accuracy prior
 accuracy_prior = c(
   set_prior("student_t(3,0,10)", class = "Intercept"),
   set_prior("student_t(3,0,10)", class = "b"),
   set_prior("student_t(3,0,10)", class = "sd")
 )
+#
+# #run accuracy model
+# fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+#                    prior = accuracy_prior,
+#                    data=motion_data,
+#                    family=bernoulli(),
+#                    cores=4,
+#           control=list(adapt_delta=0.99,max_treedepth=20))
+#
+# save(fit,file="data/derived/fit_accuracy_motion.RData")
 
-#run accuracy model
-fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
-                   prior = accuracy_prior,
-                   data=motion_data,
-                   family=bernoulli(),
-                   cores=4,
-          control=list(adapt_delta=0.99,max_treedepth=20))
 
-save(fit,file="data/derived/fit_accuracy_motion.RData")
+get_prior(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+                       prior = accuracy_prior,
+                        data=motion_data,
+                        family=bernoulli())
+
+
+load(file="data/derived/fit_accuracy_motion_full_random.RData")
+
+load(file="data/derived/fit_accuracy_motion_narrow_priors.RData")
+
+load(file="data/derived/fit_accuracy_motion.RData")
 
 #set rt prior
-rt_prior = c(
-  set_prior("student_t(3,0,500)", class = "Intercept"),
-  set_prior("student_t(3,0,10)", class = "b"),
-  set_prior("student_t(3,0,500)", class = "sd")
-)
+# rt_prior = c(
+#   set_prior("student_t(3,0,500)", class = "Intercept"),
+#   set_prior("student_t(3,0,10)", class = "b"),
+#   set_prior("student_t(3,0,500)", class = "sd")
+# )
+#
+# #run rt model
+# fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
+#                    prior = rt_prior,
+#                    data=motion_data,
+#                    family=exgaussian(),
+#                    cores=4,
+#           control=list(adapt_delta=0.99,max_treedepth=20))
+#
+# save(fit,file="data/derived/fit_rt_motion.RData")
 
-#run rt model
-fit = brm(iscorrect ~ local_paid + online_paid + time_of_semester + difficulty + emphasis + (1|subjectid),
-                   prior = rt_prior,
-                   data=motion_data,
-                   family=exgaussian(),
-                   cores=4,
-          control=list(adapt_delta=0.99,max_treedepth=20))
-
-save(fit,file="data/derived/fit_rt_motion.RData")
+load(file="data/derived/fit_rt_motion.RData")
 
 
 ### Brightness experiment ###

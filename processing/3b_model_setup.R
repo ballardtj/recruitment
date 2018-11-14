@@ -86,9 +86,11 @@ mean.prior <- prior.p.dmc(
 
 
 scale.prior <- prior.p.dmc(
-  dists = rep("beta", length(pop.mean)),
-  p1=(pop.mean>-1)*1, #hack to get p1 to be a vector of 1's with variable names
-  p2=rep(1,length(pop.mean))
+  dists = rep("tnorm", length(pop.mean)),
+  p1=(pop.mean>-1)*0, #hack to get p1 to be a vector of 1's with variable names
+  p2=rep(1,length(pop.mean)),
+  lower=rep(0,length(pop.mean)),
+  upper=rep(NA,length(pop.mean))
 )
 
 pp.prior <- list(mean.prior, scale.prior)
