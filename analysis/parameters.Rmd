@@ -8,12 +8,11 @@ output:
 # Experiment 1 - Motion
 
 ```{r, echo=FALSE,message=FALSE}
-source("processing/0_functions.R")
+#source("analysis/0_functions.R")
 
-mean_v = list()
-B = list()
-t0 = list()
-A = list()
+diff_v_ls = list()
+B_ls = list()
+t0_ls = list()
 
 ctr=0
 for (wave in c('early','late')){
@@ -21,15 +20,66 @@ for (wave in c('early','late')){
     ctr=ctr+1
     load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
     
-    #get posterior predictives
-    parms = get_parms_exp1(converged_samples)
-    mean_v[[ctr]]=parms$mean_v
-    B[[ctr]]=parms$B
-    t0[[ctr]]=parms$t0
-    A[[ctr]]=parms$A
+    #get samples
+    Nsubj = length(converged_samples)
+    Nsamp = 10#dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]
+    mcmc.list=list()
+    draws = sample(1:(dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]),size=Nsamp) #need to edit this if we only want to sample from final n draws
+    for(s in 1:Nsubj){
+      mcmc.list[[s]]=data.frame(as.matrix(theta.as.mcmc.list(converged_samples[[s]]))[draws,])
+      mcmc.list[[s]]$s = s
+      mcmc.list[[s]]$iter = 1:Nsamp
+    }
+    parameters = bind_rows(mcmc.list)
     
+  #calculate differences and sums of drift rates
+  diff_v = parameters %>%
+    select(iter,s,mean_v.c10.accuracy.true:mean_v.c25.speed.false) %>%
+    gather(key,value,mean_v.c10.accuracy.true:mean_v.c25.speed.false) %>% arrange(iter) %>%
+    extract(col=key,into=c('Parm','Coh','Emph',"M"),regex="(.+)\\.(.+)\\.(.+)\\.(.+)") %>%
+    spread(key=M,value=value) %>%
+    mutate(Emph = factor(Emph),
+           Coh = factor(Coh),
+           value = true-false) %>%
+    group_by(iter,Coh,Emph) %>%
+    summarise(value.mean = mean(value),
+              time_of_semester = wave,
+              population = group) #%>%
+    #group_by(Coh,Emph) %>%
+    #summarise(mean_v.lower = quantile(value.mc.mean,0.025),
+    #          mean_v.median = quantile(value.mc.mean,0.5),
+    #          mean_v.upper = quantile(value.mc.mean,0.975))
+
+    
+  B = parameters %>%
+    select(iter,s,B.accuracy.LEFT:B.speed.RIGHT) %>%
+    gather(key,value,B.accuracy.LEFT:B.speed.RIGHT) %>% arrange(iter) %>%
+    extract(col=key,into=c('Parm','Emph','R'),regex="(.+)\\.(.+)\\.(.+)") %>%
+    spread(key=R,value=value) %>%
+    mutate(Emph = factor(Emph),
+           value = (LEFT+RIGHT)/2) %>%
+    group_by(iter,Emph) %>%
+    summarise(value.mean = mean(value),
+              time_of_semester = wave,
+              population = group)
+    
+  t0 = parameters %>%
+    select(iter,s,t0) %>%
+    group_by(iter) %>%
+    summarise(value.mean = mean(t0),
+              time_of_semester = wave,
+              population = group) 
+    
+   diff_v_ls[[ctr]] = diff_v 
+   B_ls[[ctr]] = B
+   t0_ls[[ctr]] = t0 
+   
   }
 }
+
+
+
+
 ```
 
 ## Mean Drift Rate (v)
