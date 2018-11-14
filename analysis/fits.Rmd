@@ -1,6 +1,7 @@
 ---
 title: "R Notebook"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -26,7 +27,7 @@ for (wave in c('early','late')){
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
   
-    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=7)
+    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=2)
     
     #plot proportion correct
     sim = do.call(rbind, pp) 
@@ -56,24 +57,25 @@ for (wave in c('early','late')){
       mutate(prop = count/sum(count)) %>%
       group_by(St,Coh,Emph,R) %>%
       summarise(prop_m = mean(prop),
-                prop_l = prop_m - sd(prop)/sqrt(n()),
-                prop_u = prop_m + sd(prop)/sqrt(n()),
+                prop_l = NA,#prop_m - sd(prop)/sqrt(n()),
+                prop_u = NA,#prop_m + sd(prop)/sqrt(n()),
                 source = "Data")
      
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
-      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very\nEasy','Easy','Hard','Very\nHard')),
              St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
-     print(
-      ggplot(data=pp_smry,aes(x=Coh,y=prop_m,group=R,colour=source)) +
+    pp_accuracy = ggplot(data=pp_smry,aes(x=Coh,y=prop_m,group=R,colour=source)) +
         geom_errorbar(aes(ymax = prop_u, ymin = prop_l), width= 0.2) +
         geom_point(pch=21, size=2) +
         geom_line(aes(group=interaction(R,source))) +
         ylab("Response Proportion") + xlab('Difficulty') +
-        facet_grid(Emph~St) + theme_minimal()
-    )   
+        scale_y_continuous(breaks = seq(0,1,0.25),limits = c(0,1)) +
+        facet_grid(Emph~St) #+ theme_minimal()
+    
+    print(pp_accuracy)   
      
      
     #plot response time distribution
@@ -123,24 +125,28 @@ for (wave in c('early','late')){
       #average across subjects
       group_by(St,Coh,Emph,R,quantile) %>%
       summarise(RT_m = mean(RT),
-                RT_l = RT_m - sd(RT)/sqrt(n()),
-                RT_u = RT_m + sd(RT)/sqrt(n()),
+                RT_l = NA, #RT_m - sd(RT)/sqrt(n()),
+                RT_u = NA, #RT_m + sd(RT)/sqrt(n()),
                 source = "Data")  
    
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
-      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very Easy','Easy','Hard','Very Hard')),
+      mutate(Coh = factor(Coh,levels=c('c25','c20','c15','c10'),labels=c('Very\nEasy','Easy','Hard','Very\nHard')),
              St = factor(St,levels=c('left','right'),labels=c('Leftward Motion','Rightward Motion')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
-    print(
-      ggplot(data=pp_smry,aes(x=Coh,y=RT_m,group=quantile,colour=source)) +
-        geom_errorbar(aes(ymax = RT_u, ymin = RT_l), width= 0.2) +
+    pp_rt = ggplot(data=pp_smry,aes(x=Coh,y=RT_m*1000,group=quantile,colour=source)) +
+        geom_errorbar(aes(ymax = RT_u*1000, ymin = RT_l*1000), width= 0.2) +
         geom_point(pch=21, size=2) +
         geom_line(aes(group=interaction(quantile,source))) +
-        ylab("Response Time (s)") + xlab('Difficulty') +
-        facet_grid(Emph~St+R) + theme_minimal()
-    )
+        ylab("Response Time (ms)") + xlab('Difficulty') +
+        scale_y_continuous(breaks = seq(500,2000,500),limits = c(250,2000)) +
+        facet_grid(Emph~St+R) #+ theme_minimal()
+    
+    print(pp_rt)
+    
+    save(pp_accuracy,file=paste0("figures/pp_accuracy_exp1_",group,"_",wave,".RData"))
+    save(pp_rt,file=paste0("figures/pp_rt_exp1_",group,"_",wave,".RData"))
   }   
 }
 ```
@@ -156,7 +162,7 @@ for (wave in c('early','late')){
     cat(paste('####',group))
     #load data for relevant group
     load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
-    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=7)
+    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=2)
     
     #plot proportion correct
     sim = do.call(rbind, pp) 
@@ -186,24 +192,26 @@ for (wave in c('early','late')){
       mutate(prop = count/sum(count)) %>%
       group_by(St,Cont,Emph,R) %>%
       summarise(prop_m = mean(prop),
-                prop_l = prop_m - sd(prop)/sqrt(n()),
-                prop_u = prop_m + sd(prop)/sqrt(n()),
+                prop_l = NA,#prop_m - sd(prop)/sqrt(n()),
+                prop_u = NA, #prop_m + sd(prop)/sqrt(n()),
                 source = "Data")
      
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
-      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
-             St = factor(St,levels=c('light','dark'),labels=c('Leftward Motion','Rightward Motion')),
+      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very\nEasy','Easy','Hard','Very\nHard')),
+             St = factor(St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
-     print(
-      ggplot(data=pp_smry,aes(x=Cont,y=prop_m,group=R,colour=source)) +
+
+    pp_accuracy = ggplot(data=pp_smry,aes(x=Cont,y=prop_m,group=R,colour=source)) +
         geom_errorbar(aes(ymax = prop_u, ymin = prop_l), width= 0.2) +
         geom_point(pch=21, size=2) +
         geom_line(aes(group=interaction(R,source))) +
         ylab("Response Proportion") + xlab('Difficulty') +
-        facet_grid(Emph~St) + theme_minimal()
-    )   
+        scale_y_continuous(breaks = seq(0,1,0.25),limits = c(0,1)) +
+        facet_grid(Emph~St)  #+ theme_minimal()
+    
+    print(pp_accuracy)   
      
      
     #plot response time distribution
@@ -253,25 +261,84 @@ for (wave in c('early','late')){
       #average across subjects
       group_by(St,Cont,Emph,R,quantile) %>%
       summarise(RT_m = mean(RT),
-                RT_l = RT_m - sd(RT)/sqrt(n()),
-                RT_u = RT_m + sd(RT)/sqrt(n()),
+                RT_l = NA,#RT_m - sd(RT)/sqrt(n()),
+                RT_u = NA,#RT_m + sd(RT)/sqrt(n()),
                 source = "Data")  
    
     pp_smry =  bind_rows(data,sim) %>%
       ungroup() %>%
-      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very Easy','Easy','Hard','Very Hard')),
-             St = factor(St,levels=c('light','dark'),labels=c('Leftward Motion','Rightward Motion')),
+      mutate(Cont = factor(Cont,levels=c('c05','c04','c03','c02'),labels=c('Very\nEasy','Easy','Hard','Very\nHard')),
+             St = factor(St,levels=c('light','dark'),labels=c('Light Patch','Dark Patch')),
              Emph = factor(Emph,levels=c('speed','accuracy'),labels=c('Speed Emphasis','Accuracy Emphasis')))
         
-    print(
-      ggplot(data=pp_smry,aes(x=Cont,y=RT_m,group=quantile,colour=source)) +
-        geom_errorbar(aes(ymax = RT_u, ymin = RT_l), width= 0.2) +
+    
+    pp_rt = ggplot(data=pp_smry,aes(x=Cont,y=RT_m*1000,group=quantile,colour=source)) +
+        geom_errorbar(aes(ymax = RT_u*1000, ymin = RT_l*1000), width= 0.2) +
         geom_point(pch=21, size=2) +
         geom_line(aes(group=interaction(quantile,source))) +
-        ylab("Response Time (s)") + xlab('Difficulty') +
-        facet_grid(Emph~St+R) + theme_minimal()
-    )
+        ylab("Response Time (ms)") + xlab('Difficulty') +
+        scale_y_continuous(breaks = seq(500,2000,500),limits = c(250,2000)) +
+        facet_grid(Emph~St+R) #+ theme_minimal()
+    
+    print(pp_rt)
+    
+    save(pp_accuracy,file=paste0("figures/pp_accuracy_exp2_",group,"_",wave,".RData"))
+    save(pp_rt,file=paste0("figures/pp_rt_exp2_",group,"_",wave,".RData"))
+  
   }
 }
 ```
+
+### Combined Figure ###
+
+```{r eval=FALSE, message=FALSE, include=FALSE, results='asis'}
+
+library(gridExtra)
+
+# g_legend<-function(a.gplot){
+#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
+#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+#   legend <- tmp$grobs[[leg]]
+#   return(legend)}
+
+col_titles = c('Early in Semester','Late in Semester')
+row_titles = c('Local, Credit','Local, Paid','Online, Paid')
+
+for(exp in 1:2){
+  for(var in c('accuracy','rt')){
+    
+    ctr=0
+    pl=list()
+    for (wave in c('early','late')){
+      for (group in c('firstyear','community','mturk')){
+        ctr=ctr+1  
+        load(file=paste0("figures/pp_",var,"_exp",exp,"_",group,"_",wave,".RData"))
+        if(var=='accuracy'){
+               pl[[ctr]] = pp_accuracy + theme(legend.position = 'none')
+        }
+        if(var=='rt'){
+               pl[[ctr]] = pp_rt + theme(legend.position = 'none',
+                                         strip.text.x = element_text(size = 8),
+                                         axis.text.x = element_text(size = 6))
+        }
+      }
+    }
+    
+    # Add row titles
+    pl[1:3] = lapply(1:3, function(i) arrangeGrob(pl[[i]], left=row_titles[i]))
+    
+    # Add column titles and lay out plots
+    panel = grid.arrange(grobs=lapply(c(1,4), function(i) {
+      arrangeGrob(grobs=pl[i:(i+2)], top=col_titles[i/3 + 1], ncol=1)
+    }), ncol=2)
+    
+    ggsave(file=paste0("figures/fits_",var,"_exp",exp,".pdf"),plot=panel,height=34,width=26,units="cm")
+           
+  }
+}
+
+
+
+```
+
 
