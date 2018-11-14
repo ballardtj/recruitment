@@ -15,9 +15,9 @@ output:
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_firstyear_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Community
@@ -26,9 +26,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_community_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Mechanical Turk
@@ -37,9 +37,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_mturk_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ## Late
@@ -50,9 +50,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_firstyear_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Community
@@ -61,9 +61,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_community_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Mechanical Turk
@@ -72,9 +72,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp1_mturk_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 
@@ -88,9 +88,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_firstyear_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Community
@@ -99,9 +99,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_community_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Mechanical Turk
@@ -110,9 +110,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_mturk_early.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ## Late
@@ -123,9 +123,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_firstyear_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Community
@@ -134,9 +134,9 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_community_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
 
 ### Mechanical Turk
@@ -145,7 +145,7 @@ plot.dmc(converged_samples,hyper=T)
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
 load("data/derived/final_samples_exp2_mturk_late.RData")
-gelman.diag.dmc(converged_samples)
-t(simplify2array(effectiveSize.dmc(converged_samples)))
-plot.dmc(converged_samples,hyper=T)
+#gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=400,end=500)
 ```
