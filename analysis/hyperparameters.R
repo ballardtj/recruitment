@@ -6,6 +6,7 @@ library(tidyverse)
 library(latex2exp)
 library(gridExtra)
 library(reshape2)
+library(xtable)
 source('dmc/dmc.R')
 
 ##############################
@@ -341,11 +342,55 @@ ggsave(file=paste0("figures/parameters2.pdf"),plot=parameter_plot,height=34,widt
 ### Bayes Factors for comparisons ###
 #####################################
 
-results = matrix(NA,30,12)
+#object to store table of results
+results = matrix(NA,50,4)
+
+#sanitizer functions for formatting text strings in results matrix
+ci_text = function(posterior){
+  vals = quantile(posterior,c(0.025,0.975))
+  digits = attr(regexpr("(?<=\\.)0+", vals[i], perl = TRUE), "match.length") + 1
+  text = rep(NA,nqs)
+  for(i in 1:nqs){
+    if(val>0){
+      text[i] = paste0(" ",sprintf(paste0("%.",max(digits),"f"),vals[i]))
+    } else {
+      text[i] = sprintf(paste0("%.",max(digits),"f"),vals[i])
+    }
+  }
+  return( paste0("[$",paste(text,collapse=","),"$]"))
+}
+
+bf_text = function(bf){
+  digits =  attr(regexpr("(?<=\\.)0+", bf, perl = TRUE), "match.length") + 1
+  return(paste0("$",sprintf(paste0("%.",digits,"f"),bf),"$"))
+}
+
+
+#function that sets the number of digits based on the scale of the value
+format_digits = function(x){
+  formatted_results = matrix(NA,nrow=nrow(x),ncol=ncol(x))
+  for(i in 1:nrow(x)){
+    for(j in 1:(ncol(x))){
+      value = x[i,j]
+      if(abs(value)>10000){
+        tmp = sprintf(fmt="%.2e",value)
+        tmp = str_remove( str_remove(tmp,pattern="\\+0") ,"\\+" ) #remove the plus sign and any 0's immediately after the plus
+        formatted_results[i,j] = paste0('$',str_replace(tmp,pattern="e",'\\\\times 10^{'),'}$')
+      } else if(value > 0.1){
+        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+      } else if(value > 0.01) {
+        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+      } else {
+        formatted_results[i,j] = paste0('$',sprintf(fmt="%.1g",value),'$')
+      }
+    }
+  }
+  return(formatted_results)
+}
 
 ##### ANALYSIS OF DRIFT RATES #####
 
-col=c(1,7)
+col=c(1,3)
 
 ### Comparison 1: pairwise comparison between each participant population (averaged across early vs late and within subjects manipulations) ###
 
@@ -366,22 +411,22 @@ for(exp in 1:2){
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Credit'] - diff_v_tmp[diff_v_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[1,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[1,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[1,col[exp]] = ci_text(unlist(posterior))
+  results[1,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Credit'] - diff_v_tmp[diff_v_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[2,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[2,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[2,col[exp]] =ci_text(unlist(posterior))
+  results[2,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Paid'] - diff_v_tmp[diff_v_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[3,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[3,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[3,col[exp]] = ci_text(unlist(posterior))
+  results[3,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
 }
 
@@ -458,8 +503,8 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == 'Local, Credit','Early in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr,col[exp]] = ci_text(unlist(posterior))
+  results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
   }
 }
@@ -549,8 +594,8 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
     #get posterior density at 0
     d_posterior = approxfun(density(diff_v_tmp2$value),rule=2)
 
-    results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(diff_v_tmp2$value,0.025),2)),", ",sprintf("%.2f",round(quantile(diff_v_tmp2$value,0.975),2)),"]")
-    results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+    results[ctr,col[exp]] = ci_text(diff_v_tmp2$value)
+    results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     }
   }
@@ -586,26 +631,24 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 
     #get posterior density at 0 for easy vs very easy
     d_posterior = approxfun(density(diff_v_tmp2$e_m_ve),rule=2)
-    results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(diff_v_tmp2$e_m_ve,0.025),2)),", ",sprintf("%.2f",round(quantile(diff_v_tmp2$e_m_ve,0.975),2)),"]")
-    results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+    results[ctr,col[exp]] = ci_text(diff_v_tmp2$e_m_ve)
+    results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     #get posterior density at 0 for hard vs easy
     d_posterior = approxfun(density(diff_v_tmp2$h_m_e),rule=2)
-    results[6+ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(diff_v_tmp2$h_m_e,0.025),2)),", ",sprintf("%.2f",round(quantile(diff_v_tmp2$h_m_e,0.975),2)),"]")
-    results[6+ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+    results[6+ctr,col[exp]] = ci_text(diff_v_tmp2$h_m_e)
+    results[6+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     #get posterior density at 0 for very hard vs hard
     d_posterior = approxfun(density(diff_v_tmp2$vh_m_h),rule=2)
-    results[12+ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(diff_v_tmp2$vh_m_h,0.025),2)),", ",sprintf("%.2f",round(quantile(diff_v_tmp2$vh_m_h,0.975),2)),"]")
-    results[12+ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+    results[12+ctr,col[exp]] = ci_text(diff_v_tmp2$vh_m_h)
+    results[12+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     }
   }
 }
 
 ##### ANALYSIS OF THRESHOLDS #####
-
-col=c(3,9)
 
 ### Comparison 5: pairwise comparison between each participant population (averaged across early vs late and within subject manipulation of emphasis) ###
 
@@ -625,24 +668,25 @@ for(exp in 1:2){
   posterior = B_tmp[B_tmp$exp==exp,'Local, Credit'] - B_tmp[B_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[1,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[1,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[19,col[exp]] = ci_text(unlist(posterior))
+  results[19,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = B_tmp[B_tmp$exp==exp,'Local, Credit'] - B_tmp[B_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[2,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[2,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[20,col[exp]] = ci_text(unlist(posterior))
+  results[20,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) )#bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = B_tmp[B_tmp$exp==exp,'Local, Paid'] - B_tmp[B_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[3,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[3,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[21,col[exp]] =ci_text(unlist(posterior))
+  results[21,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
 }
+ctr=21
 
 ### Comparison 6: pairwise comparison between early vs late groups within each participant population (averaged across emphasis manipulation) ###
 
@@ -658,8 +702,6 @@ B_tmp = B_hyp %>%
   spread(time_of_semester,value)
 
 #calculate bf for each comparison
-
-ctr=3
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
   for(exp in 1:2){
@@ -667,8 +709,8 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   B_tmp[B_tmp$exp == exp & B_tmp$population == population,'Early in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr,col[exp]] = ci_text(unlist(posterior))
+  results[ctr,col[exp]+1] =bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
   }
 }
 
@@ -698,8 +740,8 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
     d_prior = approxfun(density(prior),rule=2)
 
     #get posterior density at 0
-    results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(B_tmp2$value,0.025),2)),", ",sprintf("%.2f",round(quantile(B_tmp2$value,0.975),2)),"]")
-    results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+    results[ctr,col[exp]] = ci_text(B_tmp2$value)
+    results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   }
 }
@@ -707,8 +749,6 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 
 
 ##### ANALYSIS OF NON-DECISION TIME #####
-
-col=c(5,11)
 
 ### Comparison 8: pairwise comparison between each participant population (averaged across early vs late groups)
 
@@ -728,25 +768,26 @@ for(exp in 1:2){
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Credit'] - t0_tmp[t0_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[1,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[1,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[31,col[exp]] =ci_text(unlist(posterior))
+  results[31,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Credit'] - t0_tmp[t0_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[2,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[2,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[32,col[exp]] = ci_text(unlist(posterior))
+  results[32,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Paid'] - t0_tmp[t0_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[3,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[3,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[33,col[exp]] = ci_text(unlist(posterior))
+  results[33,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
 }
 
+ctr=33
 ### Comparison 9: pairwise comparison between early vs late groups within each participant population
 
 #get prior density at 0 for these comparisons
@@ -760,7 +801,6 @@ t0_tmp = t0_hyp %>%
   #summarise(value = mean(value)) %>% #average across 2 x emphasis conditions
   spread(time_of_semester,t0)
 
-ctr=3
 #calculate bf for each comparison
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
@@ -769,16 +809,51 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     t0_tmp[t0_tmp$exp == exp & t0_tmp$population == population,'Early']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[ctr,col[exp]] = paste0("[",sprintf("%.2f",round(quantile(unlist(posterior),0.025),2)),", ",sprintf("%.2f",round(quantile(unlist(posterior),0.975),2)),"]")
-  results[ctr,col[exp]+1] = sprintf("%.2f",round(d_prior(0) / d_posterior(0) ,2)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr,col[exp]] =ci_text(unlist(posterior))
+  results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   }
 }
 
+
+results
+rownames(results) <- c('Local, Credit vs. Local, Paid',
+                       'Local, Credit vs. Online, Paid',
+                       'Local, Paid vs. Online, Paid',
+                        rep(c('Local, Credit','Local, Paid','Online, Paid'),9))
+
+colnames(results) <- rep(c('CI','BF'),6)
+
+latex_table=xtable(results,
+                   align=rep("l",ncol(results)+1),
+                   caption="Computational Modeling Results for Studies 2 and 3",
+                   label = "tab:modeling_results")
+                   #digits = set_digits(results),
+                   #display = c("s","g","g","g","g"),
+
+addtorow <- list()
+addtorow$pos <- list(dim(results)[1])
+addtorow$command <- c(
+  "\\hline \\multicolumn{5}{p\\textwidth}{
+  \\small{Note: The BFs were obtained using a top-down model comparison approach. The numerator in each comparison was the full model and the denominator was a model with the relevant effect removed. Thus, BFs > 1 indicate evidence in support of the effect, whereas BFs < 1 indicate evidence against it.}} \\\\ ")
+
+print(latex_table,
+     # add.to.row=addtorow,
+      tabular.environment = "tabularx",
+      width = "\\textwidth",
+      hline.after=c(-1,0),
+      caption.placement = "top",
+      math.style.exponents = TRUE,
+      sanitize.text.function=identity,
+      size='small')
+
+
 #TODO:
 
-#1) Write function to print CI and BF text in appropriate way. CI text should have space before if positive number and no space if negative. Both functions should round to appropriate value.
-#2) Create rest of table
+#1) Fill gaps in results matrix where blank lines will be
+#2) Make row names first col in matrix rather than rownames.
+#3) Fix sanitization
+
 
 
 #Create TABLE
