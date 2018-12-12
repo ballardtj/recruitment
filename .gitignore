@@ -10,3 +10,4 @@ analysis/*html
 analysis/*_cache
 analysis/site_libs
 data/derived/final_samples*
+data/derived/first_run_with_bounded_priors/*
