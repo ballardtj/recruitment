@@ -30,16 +30,16 @@ for(exp in 1:2){
     for (group in c('firstyear','community','mturk')){
       ctr=ctr+1
       print(ctr)
-      load(paste0("data/derived/final_samples_exp",exp,"_",group,"_",wave,".RData"))
+      load(paste0("data/derived/extra_samples_exp",exp,"_",group,"_",wave,".RData"))
 
       #get individual level parameter samples
-      Nsubj = length(converged_samples)
-      Nsamp = 1000#dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]
+      Nsubj = length(extra_samples)
+      Nsamp = 1000#dim(extra_samples[[1]]$theta)[1]*dim(extra_samples[[1]]$theta)[3]
       mcmc.list=list()
-      draws = sample(1:(dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]),size=Nsamp) #need to edit this if we only want to sample from final n draws
+      draws = sample(1:(dim(extra_samples[[1]]$theta)[1]*dim(extra_samples[[1]]$theta)[3]),size=Nsamp) #need to edit this if we only want to sample from final n draws
       for(s in 1:Nsubj){
         #print(s)
-        mcmc.list[[s]]=data.frame(as.matrix(theta.as.mcmc.list(converged_samples[[s]]))[draws,])
+        mcmc.list[[s]]=data.frame(as.matrix(theta.as.mcmc.list(extra_samples[[s]]))[draws,])
         mcmc.list[[s]]$s = s
         mcmc.list[[s]]$iter = 1:Nsamp
       }
@@ -107,7 +107,7 @@ for(exp in 1:2){
 
 
       #get population mean parameter samples
-      hyper_mean_array = attr(converged_samples,'hyper')[[1]][[1]]
+      hyper_mean_array = attr(extra_samples,'hyper')[[1]][[1]]
       hyperparameters = data.frame(apply(hyper_mean_array,2,rbind)) %>%
         mutate(iter = 1:n())
 
@@ -176,7 +176,7 @@ for(exp in 1:2){
 
 #remove big objects from workspace
 rm(mcmc.list)
-rm(converged_samples)
+rm(extra_samples)
 rm(parameters)
 rm(hyperparameters)
 
@@ -857,3 +857,4 @@ print(latex_table,
 
 
 #Create TABLE
+
