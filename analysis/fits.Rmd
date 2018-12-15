@@ -25,9 +25,9 @@ for (wave in c('early','late')){
     cat('\n')
     cat(paste('####',group))
     #load data for relevant group
-    load(paste0("data/derived/final_samples_exp1_",group,"_",wave,".RData"))
+    load(paste0("data/derived/extra_samples_exp1_",group,"_",wave,".RData"))
   
-    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=2)
+    pp = h.post.predict.dmc(extra_samples,save.simulation=T,cores=2)
     
     #plot proportion correct
     sim = do.call(rbind, pp) 
@@ -161,8 +161,8 @@ for (wave in c('early','late')){
     cat('\n')
     cat(paste('####',group))
     #load data for relevant group
-    load(paste0("data/derived/final_samples_exp2_",group,"_",wave,".RData"))
-    pp = h.post.predict.dmc(converged_samples,save.simulation=T,cores=2)
+    load(paste0("data/derived/extra_samples_exp2_",group,"_",wave,".RData"))
+    pp = h.post.predict.dmc(extra_samples,save.simulation=T,cores=2)
     
     #plot proportion correct
     sim = do.call(rbind, pp) 

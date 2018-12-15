@@ -30,16 +30,16 @@ for(exp in 1:2){
     for (group in c('firstyear','community','mturk')){
       ctr=ctr+1
       print(ctr)
-      load(paste0("data/derived/final_samples_exp",exp,"_",group,"_",wave,".RData"))
+      load(paste0("data/derived/extra_samples_exp",exp,"_",group,"_",wave,".RData"))
 
       #get individual level parameter samples
-      Nsubj = length(converged_samples)
-      Nsamp = 1000#dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]
+      Nsubj = length(extra_samples)
+      Nsamp = 1000#dim(extra_samples[[1]]$theta)[1]*dim(extra_samples[[1]]$theta)[3]
       mcmc.list=list()
-      draws = sample(1:(dim(converged_samples[[1]]$theta)[1]*dim(converged_samples[[1]]$theta)[3]),size=Nsamp) #need to edit this if we only want to sample from final n draws
+      draws = sample(1:(dim(extra_samples[[1]]$theta)[1]*dim(extra_samples[[1]]$theta)[3]),size=Nsamp) #need to edit this if we only want to sample from final n draws
       for(s in 1:Nsubj){
         #print(s)
-        mcmc.list[[s]]=data.frame(as.matrix(theta.as.mcmc.list(converged_samples[[s]]))[draws,])
+        mcmc.list[[s]]=data.frame(as.matrix(theta.as.mcmc.list(extra_samples[[s]]))[draws,])
         mcmc.list[[s]]$s = s
         mcmc.list[[s]]$iter = 1:Nsamp
       }
@@ -107,7 +107,7 @@ for(exp in 1:2){
 
 
       #get population mean parameter samples
-      hyper_mean_array = attr(converged_samples,'hyper')[[1]][[1]]
+      hyper_mean_array = attr(extra_samples,'hyper')[[1]][[1]]
       hyperparameters = data.frame(apply(hyper_mean_array,2,rbind)) %>%
         mutate(iter = 1:n())
 
@@ -176,7 +176,7 @@ for(exp in 1:2){
 
 #remove big objects from workspace
 rm(mcmc.list)
-rm(converged_samples)
+rm(extra_samples)
 rm(parameters)
 rm(hyperparameters)
 
@@ -343,21 +343,26 @@ ggsave(file=paste0("figures/parameters2.pdf"),plot=parameter_plot,height=34,widt
 #####################################
 
 #object to store table of results
-results = matrix(NA,70,4)
-names = rep(NA,70)
+results = matrix(NA,72,4)
+names = rep(NA,72)
 
 
 #sanitizer functions for formatting text strings in results matrix
 ci_text = function(posterior){
-  vals = quantile(posterior,c(0.025,0.975))
+  qs =  quantile(posterior,c(0.025,0.975))
+  nqs = length(qs)
+  vals = rep(NA,nqs)
+  #store values as character strings
+  for(i in 1:length(qs)){
+    vals[i] = sprintf("%.10f",qs[i])
+  }
   digits = attr(regexpr("(?<=\\.)0+", vals, perl = TRUE), "match.length") + 1
-  nqs = length(digits)
   text = rep(NA,nqs)
   for(i in 1:nqs){
-    if(vals[i]>0){
-      text[i] = paste0(" ",sprintf(paste0("%.",max(digits),"f"),vals[i]))
+    if(as.numeric(vals[i]>0)){
+      text[i] = paste0(" ",sprintf(paste0("%.",max(digits,2),"f"),as.numeric(vals[i])))
     } else {
-      text[i] = sprintf(paste0("%.",max(digits),"f"),vals[i])
+      text[i] = sprintf(paste0("%.",max(digits,2),"f"),as.numeric(vals[i]))
     }
   }
   return( paste0("[$",paste(text,collapse=","),"$]"))
@@ -365,31 +370,31 @@ ci_text = function(posterior){
 
 bf_text = function(bf){
   digits =  attr(regexpr("(?<=\\.)0+", bf, perl = TRUE), "match.length") + 1
-  return(paste0("$",sprintf(paste0("%.",digits,"f"),bf),"$"))
+  return(paste0("$",sprintf(paste0("%.",max(digits,2),"f"),bf),"$"))
 }
 
 
 #function that sets the number of digits based on the scale of the value
-format_digits = function(x){
-  formatted_results = matrix(NA,nrow=nrow(x),ncol=ncol(x))
-  for(i in 1:nrow(x)){
-    for(j in 1:(ncol(x))){
-      value = x[i,j]
-      if(abs(value)>10000){
-        tmp = sprintf(fmt="%.2e",value)
-        tmp = str_remove( str_remove(tmp,pattern="\\+0") ,"\\+" ) #remove the plus sign and any 0's immediately after the plus
-        formatted_results[i,j] = paste0('$',str_replace(tmp,pattern="e",'\\\\times 10^{'),'}$')
-      } else if(value > 0.1){
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
-      } else if(value > 0.01) {
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
-      } else {
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.1g",value),'$')
-      }
-    }
-  }
-  return(formatted_results)
-}
+# format_digits = function(x){
+#   formatted_results = matrix(NA,nrow=nrow(x),ncol=ncol(x))
+#   for(i in 1:nrow(x)){
+#     for(j in 1:(ncol(x))){
+#       value = x[i,j]
+#       if(abs(value)>10000){
+#         tmp = sprintf(fmt="%.2e",value)
+#         tmp = str_remove( str_remove(tmp,pattern="\\+0") ,"\\+" ) #remove the plus sign and any 0's immediately after the plus
+#         formatted_results[i,j] = paste0('$',str_replace(tmp,pattern="e",'\\\\times 10^{'),'}$')
+#       } else if(value > 0.1){
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+#       } else if(value > 0.01) {
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+#       } else {
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.1g",value),'$')
+#       }
+#     }
+#   }
+#   return(formatted_results)
+# }
 
 ##### ANALYSIS OF DRIFT RATES #####
 
@@ -399,9 +404,9 @@ col=c(1,3)
 
 names[1] = "Quality of Information"
 ctr=1
-names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
-               'Local, Credit vs. Online, Paid',
-                'Local, Paid vs. Online, Paid')
+names[(ctr+1):(ctr+3)] = c('\\hspace{3mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{3mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{3mm} Local, Paid vs. Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rnorm(n=16*100000,mean=1,sd=2),ncol=16) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -503,10 +508,10 @@ diff_v_tmp = diff_v_hyp %>%
   spread(time_of_semester,value)
 
 ctr=ctr+4
-names[ctr] = c('Early vs Late')
-names[(ctr+1):(ctr+3)] = c('Local, Credit',
-                           'Local, Paid',
-                           'Online, Paid')
+names[ctr] = c('\\hspace{3mm} Early vs Late')
+names[(ctr+1):(ctr+3)] = c('\\hspace{6mm} Local, Credit',
+                           '\\hspace{6mm} Local, Paid',
+                           '\\hspace{6mm} Online, Paid')
 #Local Credit: Early vs Late
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
@@ -591,15 +596,15 @@ diff_v_tmp = diff_v_ind %>%
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
 ctr=ctr+1
-names[ctr] = c('Speed vs Accuracy')
-names[ctr+1] = c('Early')
-names[(ctr+2):(ctr+4)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
-names[ctr+5] = c('Late')
-names[(ctr+6):(ctr+8)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[ctr] = c('\\hspace{3mm} Speed vs Accuracy')
+names[ctr+1] = c('\\hspace{6mm} Early')
+names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[ctr+5] = c('\\hspace{6mm} Late')
+names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
 
 
 
@@ -646,16 +651,16 @@ ctr=ctr+1
 
 
 
-names[ctr + c(0,9,18)] = c('Easy vs Very Easy',
-                        'Hard vs Easy',
-                        'Very Hard vs Hard')
+names[ctr + c(0,9,18)] = c('\\hspace{3mm} Easy vs Very Easy',
+                           '\\hspace{3mm} Hard vs Easy',
+                           '\\hspace{3mm} Very Hard vs Hard')
 
-names[ctr + c(1,10,19)] = 'Early'
+names[ctr + c(1,10,19)] = '\\hspace{6mm} Early'
 
-names[ctr+c(2:4,6:8,11:13,15:17,20:22,24:26)] = c('Local, Credit',
-                                                  'Local, Paid',
-                                                  'Online, Paid')
-names[ctr+c(5,14,23)] = 'Late'
+names[ctr+c(2:4,6:8,11:13,15:17,20:22,24:26)] = c('\\hspace{9mm} Local, Credit',
+                                                  '\\hspace{9mm} Local, Paid',
+                                                  '\\hspace{9mm} Online, Paid')
+names[ctr+c(5,14,23)] = '\\hspace{6mm} Late'
 
 
 for(time_of_semester in c('Early in Semester','Late in Semester')){
@@ -700,9 +705,9 @@ ctr=ctr+18
 ctr=ctr+1
 names[ctr] = 'Threshold'
 
-names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[(ctr+1):(ctr+3)] = c('\\hspace{3mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{3mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{3mm} Local, Paid vs. Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=4*100000,mean=1,sd=1,lower=0,upper=Inf),ncol=4) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -744,10 +749,10 @@ ctr=ctr+2
 ### Comparison 6: pairwise comparison between early vs late groups within each participant population (averaged across emphasis manipulation) ###
 
 ctr=ctr+1
-names[ctr] = c('Early vs Late')
-names[(ctr+1):(ctr+3)] = c('Local, Credit',
-                           'Local, Paid',
-                           'Online, Paid')
+names[ctr] = c('\\hspace{3mm} Early vs Late')
+names[(ctr+1):(ctr+3)] = c('\\hspace{6mm} Local, Credit',
+                           '\\hspace{6mm} Local, Paid',
+                           '\\hspace{6mm} Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=2*100000,mean=1,sd=1,lower=0,upper=Inf),ncol=2) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -785,18 +790,19 @@ B_tmp = B_ind %>%
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
 ctr=ctr+1
-names[ctr] = c('Speed vs Accuracy')
-names[ctr+1] = c('Early')
-names[(ctr+2):(ctr+4)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
-names[ctr+5] = c('Late')
-names[(ctr+6):(ctr+8)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[ctr] = c('\\hspace{3mm} Speed vs Accuracy')
+names[ctr+1] = c('\\hspace{6mm} Early')
+names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[ctr+5] = c('\\hspace{6mm} Late')
+names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
 
 
 for(time_of_semester in c('Early in Semester','Late in Semester')){
+  ctr=ctr+1
   for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     ctr=ctr+1
     for(exp in 1:2){
@@ -824,11 +830,11 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 ### Comparison 8: pairwise comparison between each participant population (averaged across early vs late groups)
 
 ctr=ctr+1
-names[ctr] = 'Non-decision time'
+names[ctr] = '\\hspace{3mm} Non-decision time'
 
-names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[(ctr+1):(ctr+3)] = c('\\hspace{6mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{6mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{6mm} Local, Paid vs. Online, Paid')
 
 
 #get prior density at 0 for these comparisons
@@ -842,7 +848,6 @@ t0_tmp = t0_hyp %>%
   summarise(value = mean(t0)) %>% #average across 2 x emphasis conditions x 2 time of semester groups (so 4 posteriors being averaged)
   spread(population,value)
 
-ctr=ctr+1
 for(exp in 1:2){
   #local credit vs local paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Credit'] - t0_tmp[t0_tmp$exp==exp,'Local, Paid']
@@ -871,11 +876,10 @@ ctr=ctr+3
 
 ### Comparison 9: pairwise comparison between early vs late groups within each participant population
 
-ctr=ctr+1
-names[ctr] = c('Early vs Late')
-names[(ctr+1):(ctr+3)] = c('Local, Credit',
-                           'Local, Paid',
-                           'Online, Paid')
+names[ctr+1] = c('\\hspace{3mm} Early vs Late')
+names[(ctr+2):(ctr+4)] = c('\\hspace{6mm} Local, Credit',
+                           '\\hspace{6mm} Local, Paid',
+                           '\\hspace{6mm} Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=100000,mean=1,sd=1,lower=0,upper=Inf),ncol=1) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -906,10 +910,7 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
 
 results
 
-results_labelled = cbind( c('Local, Credit vs. Local, Paid',
-  'Local, Credit vs. Online, Paid',
-  'Local, Paid vs. Online, Paid',
-  rep(c('Local, Credit','Local, Paid','Online, Paid'),9),rep(NA,20)),results)
+results_labelled = cbind(names,results)[1:69,]
 
 # rownames(results) <- c('Local, Credit vs. Local, Paid',
 #                        'Local, Credit vs. Online, Paid',
@@ -937,19 +938,9 @@ print(latex_table,
      # add.to.row=addtorow,
       tabular.environment = "tabularx",
       width = "\\textwidth",
-      hline.after=c(-1,0),
+      hline.after=c(-1,0,69),
       caption.placement = "top",
       math.style.exponents = TRUE,
       sanitize.text.function=identity,
       include.rownames = F,
-      size='small')
-
-
-#TODO:
-
-#1) Fill gaps in results matrix where blank lines will be and add correct labels (from Threshold onwards)
-#2) Fix sanitization so that if there are no zeros, the digits is 2.
-
-
-
-#Create TABLE
+      size='scriptsize')
