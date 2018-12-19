@@ -68,6 +68,7 @@ plot.dmc(extra_samples,hyper=T,start=1,end=500)
 
 ### Mechanical Turk
 
+
 ```{r echo=FALSE,warning=FALSE,message=FALSE}
 source("dmc/dmc.R")
 load_model("lba","lba_B.R")
@@ -75,6 +76,15 @@ load("data/derived/extra_samples_exp1_mturk_late.RData")
 #gelman.diag.dmc(extra_samples)
 #t(simplify2array(effectiveSize.dmc(extra_samples)))
 plot.dmc(extra_samples,hyper=T,start=1,end=500)
+```
+
+```{r echo=FALSE,warning=FALSE, message=FALSE}
+source("dmc/dmc.R")
+load_model("lba","lba_B.R")
+load("data/derived/final_samples_exp1_mturk_late.RData")
+gelman.diag.dmc(converged_samples)
+#t(simplify2array(effectiveSize.dmc(converged_samples)))
+plot.dmc(converged_samples,hyper=T,start=1,end=500)
 ```
 
 
@@ -92,6 +102,7 @@ load("data/derived/extra_samples_exp2_firstyear_early.RData")
 #t(simplify2array(effectiveSize.dmc(extra_samples)))
 plot.dmc(extra_samples,hyper=T,start=1,end=500)
 ```
+
 
 ### Community
 
@@ -149,3 +160,4 @@ load("data/derived/extra_samples_exp2_mturk_late.RData")
 #t(simplify2array(effectiveSize.dmc(extra_samples)))
 plot.dmc(extra_samples,hyper=T,start=1,end=500)
 ```
+
