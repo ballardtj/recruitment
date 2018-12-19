@@ -343,15 +343,18 @@ ggsave(file=paste0("figures/parameters2.pdf"),plot=parameter_plot,height=34,widt
 #####################################
 
 #object to store table of results
-results = matrix(NA,50,4)
+results = matrix(NA,70,4)
+names = rep(NA,70)
+
 
 #sanitizer functions for formatting text strings in results matrix
 ci_text = function(posterior){
   vals = quantile(posterior,c(0.025,0.975))
-  digits = attr(regexpr("(?<=\\.)0+", vals[i], perl = TRUE), "match.length") + 1
+  digits = attr(regexpr("(?<=\\.)0+", vals, perl = TRUE), "match.length") + 1
+  nqs = length(digits)
   text = rep(NA,nqs)
   for(i in 1:nqs){
-    if(val>0){
+    if(vals[i]>0){
       text[i] = paste0(" ",sprintf(paste0("%.",max(digits),"f"),vals[i]))
     } else {
       text[i] = sprintf(paste0("%.",max(digits),"f"),vals[i])
@@ -394,6 +397,12 @@ col=c(1,3)
 
 ### Comparison 1: pairwise comparison between each participant population (averaged across early vs late and within subjects manipulations) ###
 
+names[1] = "Quality of Information"
+ctr=1
+names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
+               'Local, Credit vs. Online, Paid',
+                'Local, Paid vs. Online, Paid')
+
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rnorm(n=16*100000,mean=1,sd=2),ncol=16) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
   apply( matrix(rnorm(n=16*100000,mean=1,sd=2),ncol=16) , 1 , 'mean')
@@ -411,22 +420,22 @@ for(exp in 1:2){
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Credit'] - diff_v_tmp[diff_v_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[1,col[exp]] = ci_text(unlist(posterior))
-  results[1,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+1,col[exp]] = ci_text(unlist(posterior))
+  results[ctr+1,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Credit'] - diff_v_tmp[diff_v_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[2,col[exp]] =ci_text(unlist(posterior))
-  results[2,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+2,col[exp]] =ci_text(unlist(posterior))
+  results[ctr+2,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = diff_v_tmp[diff_v_tmp$exp==exp,'Local, Paid'] - diff_v_tmp[diff_v_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[3,col[exp]] = ci_text(unlist(posterior))
-  results[3,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+3,col[exp]] = ci_text(unlist(posterior))
+  results[ctr+3,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
 }
 
@@ -493,7 +502,11 @@ diff_v_tmp = diff_v_hyp %>%
   summarise(value = mean(value)) %>% #average across 8 different difficulty x emphasis conditions
   spread(time_of_semester,value)
 
-ctr=3
+ctr=ctr+4
+names[ctr] = c('Early vs Late')
+names[(ctr+1):(ctr+3)] = c('Local, Credit',
+                           'Local, Paid',
+                           'Online, Paid')
 #Local Credit: Early vs Late
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
@@ -577,7 +590,21 @@ diff_v_tmp = diff_v_ind %>%
   summarise(value = mean(Accuracy - Speed),
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
+ctr=ctr+1
+names[ctr] = c('Speed vs Accuracy')
+names[ctr+1] = c('Early')
+names[(ctr+2):(ctr+4)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
+names[ctr+5] = c('Late')
+names[(ctr+6):(ctr+8)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
+
+
+
 for(time_of_semester in c('Early in Semester','Late in Semester')){
+  ctr=ctr+1
   for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     ctr=ctr+1
     for(exp in 1:2){
@@ -615,7 +642,24 @@ diff_v_tmp = diff_v_ind %>%
             vh_m_h = mean(`Very\nHard` - Hard),
             n = length(Hard))
 
+ctr=ctr+1
+
+
+
+names[ctr + c(0,9,18)] = c('Easy vs Very Easy',
+                        'Hard vs Easy',
+                        'Very Hard vs Hard')
+
+names[ctr + c(1,10,19)] = 'Early'
+
+names[ctr+c(2:4,6:8,11:13,15:17,20:22,24:26)] = c('Local, Credit',
+                                                  'Local, Paid',
+                                                  'Online, Paid')
+names[ctr+c(5,14,23)] = 'Late'
+
+
 for(time_of_semester in c('Early in Semester','Late in Semester')){
+  ctr=ctr+1
   for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     ctr=ctr+1
     for(exp in 1:2){
@@ -636,21 +680,29 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 
     #get posterior density at 0 for hard vs easy
     d_posterior = approxfun(density(diff_v_tmp2$h_m_e),rule=2)
-    results[6+ctr,col[exp]] = ci_text(diff_v_tmp2$h_m_e)
-    results[6+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
+    results[9+ctr,col[exp]] = ci_text(diff_v_tmp2$h_m_e)
+    results[9+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     #get posterior density at 0 for very hard vs hard
     d_posterior = approxfun(density(diff_v_tmp2$vh_m_h),rule=2)
-    results[12+ctr,col[exp]] = ci_text(diff_v_tmp2$vh_m_h)
-    results[12+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
+    results[18+ctr,col[exp]] = ci_text(diff_v_tmp2$vh_m_h)
+    results[18+ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0)) #bf (rounds to second digits and keeps trailing 0s)
 
     }
   }
 }
+ctr=ctr+18
 
 ##### ANALYSIS OF THRESHOLDS #####
 
 ### Comparison 5: pairwise comparison between each participant population (averaged across early vs late and within subject manipulation of emphasis) ###
+
+ctr=ctr+1
+names[ctr] = 'Threshold'
+
+names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=4*100000,mean=1,sd=1,lower=0,upper=Inf),ncol=4) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -663,32 +715,39 @@ B_tmp = B_hyp %>%
   summarise(value = mean(value)) %>% #average across 2 x emphasis conditions x 2 time of semester groups (so 4 posteriors being averaged)
   spread(population,value)
 
+ctr=ctr+1
 for(exp in 1:2){
   #local credit vs local paid
   posterior = B_tmp[B_tmp$exp==exp,'Local, Credit'] - B_tmp[B_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[19,col[exp]] = ci_text(unlist(posterior))
-  results[19,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr,col[exp]] = ci_text(unlist(posterior))
+  results[ctr,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = B_tmp[B_tmp$exp==exp,'Local, Credit'] - B_tmp[B_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[20,col[exp]] = ci_text(unlist(posterior))
-  results[20,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) )#bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+1,col[exp]] = ci_text(unlist(posterior))
+  results[ctr+1,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) )#bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = B_tmp[B_tmp$exp==exp,'Local, Paid'] - B_tmp[B_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[21,col[exp]] =ci_text(unlist(posterior))
-  results[21,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+2,col[exp]] =ci_text(unlist(posterior))
+  results[ctr+2,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
 }
-ctr=21
+ctr=ctr+2
 
 ### Comparison 6: pairwise comparison between early vs late groups within each participant population (averaged across emphasis manipulation) ###
+
+ctr=ctr+1
+names[ctr] = c('Early vs Late')
+names[(ctr+1):(ctr+3)] = c('Local, Credit',
+                           'Local, Paid',
+                           'Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=2*100000,mean=1,sd=1,lower=0,upper=Inf),ncol=2) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -725,6 +784,18 @@ B_tmp = B_ind %>%
   summarise(value = mean(Accuracy - Speed),
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
+ctr=ctr+1
+names[ctr] = c('Speed vs Accuracy')
+names[ctr+1] = c('Early')
+names[(ctr+2):(ctr+4)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
+names[ctr+5] = c('Late')
+names[(ctr+6):(ctr+8)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
+
+
 for(time_of_semester in c('Early in Semester','Late in Semester')){
   for(population in c('Local, Credit','Local, Paid','Online, Paid')){
     ctr=ctr+1
@@ -752,6 +823,14 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 
 ### Comparison 8: pairwise comparison between each participant population (averaged across early vs late groups)
 
+ctr=ctr+1
+names[ctr] = 'Non-decision time'
+
+names[(ctr+1):(ctr+3)] = c('Local, Credit vs. Local, Paid',
+                           'Local, Credit vs. Online, Paid',
+                           'Local, Paid vs. Online, Paid')
+
+
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=2*100000,mean=0.2,sd=1,lower=0.1,upper=1),ncol=2) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
   apply( matrix(rtnorm(n=2*100000,mean=0.2,sd=1,lower=0.1,upper=1),ncol=2) , 1 , 'mean')
@@ -763,32 +842,40 @@ t0_tmp = t0_hyp %>%
   summarise(value = mean(t0)) %>% #average across 2 x emphasis conditions x 2 time of semester groups (so 4 posteriors being averaged)
   spread(population,value)
 
+ctr=ctr+1
 for(exp in 1:2){
   #local credit vs local paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Credit'] - t0_tmp[t0_tmp$exp==exp,'Local, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[31,col[exp]] =ci_text(unlist(posterior))
-  results[31,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+1,col[exp]] =ci_text(unlist(posterior))
+  results[ctr+1,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Credit'] - t0_tmp[t0_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[32,col[exp]] = ci_text(unlist(posterior))
-  results[32,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+2,col[exp]] = ci_text(unlist(posterior))
+  results[ctr+2,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
   #local credit vs online paid
   posterior = t0_tmp[t0_tmp$exp==exp,'Local, Paid'] - t0_tmp[t0_tmp$exp==exp,'Online, Paid']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
-  results[33,col[exp]] = ci_text(unlist(posterior))
-  results[33,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
+  results[ctr+3,col[exp]] = ci_text(unlist(posterior))
+  results[ctr+3,col[exp]+1] = bf_text(d_prior(0) / d_posterior(0) ) #bf (rounds to second digits and keeps trailing 0s)
 
 }
 
-ctr=33
+ctr=ctr+3
+
 ### Comparison 9: pairwise comparison between early vs late groups within each participant population
+
+ctr=ctr+1
+names[ctr] = c('Early vs Late')
+names[(ctr+1):(ctr+3)] = c('Local, Credit',
+                           'Local, Paid',
+                           'Online, Paid')
 
 #get prior density at 0 for these comparisons
 prior = apply( matrix(rtnorm(n=100000,mean=1,sd=1,lower=0,upper=Inf),ncol=1) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
@@ -802,6 +889,7 @@ t0_tmp = t0_hyp %>%
   spread(time_of_semester,t0)
 
 #calculate bf for each comparison
+ctr=ctr+1
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
   for(exp in 1:2){
@@ -817,22 +905,30 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
 
 
 results
-rownames(results) <- c('Local, Credit vs. Local, Paid',
-                       'Local, Credit vs. Online, Paid',
-                       'Local, Paid vs. Online, Paid',
-                        rep(c('Local, Credit','Local, Paid','Online, Paid'),9))
 
-colnames(results) <- rep(c('CI','BF'),6)
+results_labelled = cbind( c('Local, Credit vs. Local, Paid',
+  'Local, Credit vs. Online, Paid',
+  'Local, Paid vs. Online, Paid',
+  rep(c('Local, Credit','Local, Paid','Online, Paid'),9),rep(NA,20)),results)
 
-latex_table=xtable(results,
-                   align=rep("l",ncol(results)+1),
+# rownames(results) <- c('Local, Credit vs. Local, Paid',
+#                        'Local, Credit vs. Online, Paid',
+#                        'Local, Paid vs. Online, Paid',
+#                         rep(c('Local, Credit','Local, Paid','Online, Paid'),9))
+
+colnames(results_labelled) <- c(" ",rep(c('CI','BF'),2))
+
+results_labelled
+
+latex_table=xtable(results_labelled,
+                   align=rep("l",ncol(results_labelled)+1),
                    caption="Computational Modeling Results for Studies 2 and 3",
                    label = "tab:modeling_results")
                    #digits = set_digits(results),
                    #display = c("s","g","g","g","g"),
 
 addtorow <- list()
-addtorow$pos <- list(dim(results)[1])
+addtorow$pos <- list(dim(results_labelled)[1])
 addtorow$command <- c(
   "\\hline \\multicolumn{5}{p\\textwidth}{
   \\small{Note: The BFs were obtained using a top-down model comparison approach. The numerator in each comparison was the full model and the denominator was a model with the relevant effect removed. Thus, BFs > 1 indicate evidence in support of the effect, whereas BFs < 1 indicate evidence against it.}} \\\\ ")
@@ -845,14 +941,14 @@ print(latex_table,
       caption.placement = "top",
       math.style.exponents = TRUE,
       sanitize.text.function=identity,
+      include.rownames = F,
       size='small')
 
 
 #TODO:
 
-#1) Fill gaps in results matrix where blank lines will be
-#2) Make row names first col in matrix rather than rownames.
-#3) Fix sanitization
+#1) Fill gaps in results matrix where blank lines will be and add correct labels (from Threshold onwards)
+#2) Fix sanitization so that if there are no zeros, the digits is 2.
 
 
 
