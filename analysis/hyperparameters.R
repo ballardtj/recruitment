@@ -518,7 +518,7 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   for(exp in 1:2){
 
   posterior = diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Late in Semester'] -
-    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == 'Local, Credit','Early in Semester']
+    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Early in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
   results[ctr,col[exp]] = ci_text(unlist(posterior))
@@ -598,13 +598,13 @@ diff_v_tmp = diff_v_ind %>%
 ctr=ctr+1
 names[ctr] = c('\\hspace{3mm} Speed vs Accuracy')
 names[ctr+1] = c('\\hspace{6mm} Early')
-names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
-                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
-                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit',
+                           '\\hspace{9mm} Local, Paid',
+                           '\\hspace{9mm} Online, Paid')
 names[ctr+5] = c('\\hspace{6mm} Late')
-names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
-                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
-                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit',
+                           '\\hspace{9mm} Local, Paid',
+                           '\\hspace{9mm} Online, Paid')
 
 
 
