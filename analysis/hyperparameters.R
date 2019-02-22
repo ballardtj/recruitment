@@ -348,48 +348,68 @@ names = rep(NA,70)
 
 
 #sanitizer functions for formatting text strings in results matrix
+# ci_text = function(posterior){
+#   vals = quantile(posterior,c(0.025,0.975))
+#   digits = attr(regexpr("(?<=\\.)0+", vals, perl = TRUE), "match.length") + 1
+#   nqs = length(digits)
+#   text = rep(NA,nqs)
+#   for(i in 1:nqs){
+#     if(vals[i]>0){
+#       text[i] = paste0(" ",sprintf(paste0("%.",max(digits),"f"),vals[i]))
+#     } else {
+#       text[i] = sprintf(paste0("%.",max(digits),"f"),vals[i])
+#     }
+#   }
+#   return( paste0("[$",paste(text,collapse=","),"$]"))
+# }
+
 ci_text = function(posterior){
-  vals = quantile(posterior,c(0.025,0.975))
+  qs =  quantile(posterior,c(0.025,0.975))
+  nqs = length(qs)
+  vals = rep(NA,nqs)
+  #store values as character strings
+  for(i in 1:length(qs)){
+    vals[i] = sprintf("%.10f",qs[i])
+  }
   digits = attr(regexpr("(?<=\\.)0+", vals, perl = TRUE), "match.length") + 1
-  nqs = length(digits)
   text = rep(NA,nqs)
   for(i in 1:nqs){
-    if(vals[i]>0){
-      text[i] = paste0(" ",sprintf(paste0("%.",max(digits),"f"),vals[i]))
+    if(as.numeric(vals[i]>0)){
+      text[i] = paste0(" ",sprintf(paste0("%.",max(digits,2),"f"),as.numeric(vals[i])))
     } else {
-      text[i] = sprintf(paste0("%.",max(digits),"f"),vals[i])
+      text[i] = sprintf(paste0("%.",max(digits,2),"f"),as.numeric(vals[i]))
     }
   }
   return( paste0("[$",paste(text,collapse=","),"$]"))
 }
 
 bf_text = function(bf){
-  digits =  attr(regexpr("(?<=\\.)0+", bf, perl = TRUE), "match.length") + 1
+  digits = 2 # attr(regexpr("(?<=\\.)0+", bf, perl = TRUE), "match.length") + 1
   return(paste0("$",sprintf(paste0("%.",digits,"f"),bf),"$"))
 }
 
 
 #function that sets the number of digits based on the scale of the value
-format_digits = function(x){
-  formatted_results = matrix(NA,nrow=nrow(x),ncol=ncol(x))
-  for(i in 1:nrow(x)){
-    for(j in 1:(ncol(x))){
-      value = x[i,j]
-      if(abs(value)>10000){
-        tmp = sprintf(fmt="%.2e",value)
-        tmp = str_remove( str_remove(tmp,pattern="\\+0") ,"\\+" ) #remove the plus sign and any 0's immediately after the plus
-        formatted_results[i,j] = paste0('$',str_replace(tmp,pattern="e",'\\\\times 10^{'),'}$')
-      } else if(value > 0.1){
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
-      } else if(value > 0.01) {
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
-      } else {
-        formatted_results[i,j] = paste0('$',sprintf(fmt="%.1g",value),'$')
-      }
-    }
-  }
-  return(formatted_results)
-}
+# format_digits = function(x){
+#   formatted_results = matrix(NA,nrow=nrow(x),ncol=ncol(x))
+#   for(i in 1:nrow(x)){
+#     for(j in 1:(ncol(x))){
+#       value = x[i,j]
+#       if(abs(value)>10000){
+#         tmp = sprintf(fmt="%.2e",value)
+#         tmp = str_remove( str_remove(tmp,pattern="\\+0") ,"\\+" ) #remove the plus sign and any 0's immediately after the plus
+#         formatted_results[i,j] = paste0('$',str_replace(tmp,pattern="e",'\\\\times 10^{'),'}$')
+#       } else if(value > 0.1){
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+#       } else if(value > 0.01) {
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.2f",value),'$')
+#       } else {
+#         formatted_results[i,j] = paste0('$',sprintf(fmt="%.1g",value),'$')
+#       }
+#     }
+#   }
+#   return(formatted_results)
+# }
 
 ##### ANALYSIS OF DRIFT RATES #####
 
@@ -513,7 +533,7 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   for(exp in 1:2){
 
   posterior = diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Late in Semester'] -
-    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == 'Local, Credit','Early in Semester']
+    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Early in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
   results[ctr,col[exp]] = ci_text(unlist(posterior))
@@ -593,13 +613,13 @@ diff_v_tmp = diff_v_ind %>%
 ctr=ctr+1
 names[ctr] = c('Speed vs Accuracy')
 names[ctr+1] = c('Early')
-names[(ctr+2):(ctr+4)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[(ctr+2):(ctr+4)] = c('Local, Credit',
+                           'Local,Paid',
+                           'Online, Paid')
 names[ctr+5] = c('Late')
-names[(ctr+6):(ctr+8)] = c('Local, Credit vs. Local, Paid',
-                           'Local, Credit vs. Online, Paid',
-                           'Local, Paid vs. Online, Paid')
+names[(ctr+6):(ctr+8)] = c('Local, Credit',
+                           'Local, Paid',
+                           'Online, Paid')
 
 
 
@@ -944,13 +964,4 @@ print(latex_table,
       include.rownames = F,
       size='small')
 
-
-#TODO:
-
-#1) Fill gaps in results matrix where blank lines will be and add correct labels (from Threshold onwards)
-#2) Fix sanitization so that if there are no zeros, the digits is 2.
-
-
-
-#Create TABLE
 
