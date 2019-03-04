@@ -7,6 +7,7 @@ library(latex2exp)
 library(gridExtra)
 library(reshape2)
 library(xtable)
+library(truncnorm)
 source('dmc/dmc.R')
 
 ##############################
@@ -409,6 +410,9 @@ names[(ctr+1):(ctr+3)] = c('\\hspace{3mm} Local, Credit vs. Local, Paid',
                            '\\hspace{3mm} Local, Paid vs. Online, Paid')
 
 #get prior density at 0 for these comparisons
+
+#n_col in matrix represents the number of parameters that are being collapsed across (2x time of semester X 2 emphasis X 4 difficulty)
+
 prior = apply( matrix(rnorm(n=16*100000,mean=1,sd=2),ncol=16) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
   apply( matrix(rnorm(n=16*100000,mean=1,sd=2),ncol=16) , 1 , 'mean')
 d_prior = approxfun(density(prior),rule=2)
@@ -517,8 +521,8 @@ for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
   for(exp in 1:2){
 
-  posterior = diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Late in Semester'] -
-    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Early in Semester']
+  posterior = diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Early in Semester'] -
+    diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population == population,'Late in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
   results[ctr,col[exp]] = ci_text(unlist(posterior))
@@ -596,7 +600,7 @@ diff_v_tmp = diff_v_ind %>%
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
 ctr=ctr+1
-names[ctr] = c('\\hspace{3mm} Speed vs Accuracy')
+names[ctr] = c('\\hspace{3mm} Accuracy vs Speed')
 names[ctr+1] = c('\\hspace{6mm} Early')
 names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit',
                            '\\hspace{9mm} Local, Paid',
@@ -618,9 +622,14 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
     diff_v_tmp2 = diff_v_tmp[diff_v_tmp$exp == exp & diff_v_tmp$population==population  & diff_v_tmp$time_of_semester==time_of_semester,]
 
     #get prior density at 0 for this comparisons
-    n_col = diff_v_tmp2$n[1]*4
-    prior = apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
-      apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean')
+    n_col = diff_v_tmp2$n[1]*4 #collapse across N x 4 (difficulty conditions)
+
+    mean_prior = rnorm(n=n_col*100000,mean=1,sd=2)
+    sd_prior = rtnorm(n=n_col*100000,mean=0,sd=1,lower=0)
+
+    prior = apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
+      apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean')
+
     d_prior = approxfun(density(prior),rule=2)
 
     #get posterior density at 0
@@ -674,8 +683,13 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 
     #get prior density at 0 for this comparisons
     n_col = diff_v_tmp2$n[1]
-    prior = apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
-      apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean')
+
+    mean_prior = rnorm(n=n_col*100000,mean=1,sd=2)
+    sd_prior = rtnorm(n=n_col*100000,mean=0,sd=1,lower=0)
+
+    prior = apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
+      apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean')
+
     d_prior = approxfun(density(prior),rule=2)
 
     #get posterior density at 0 for easy vs very easy
@@ -769,8 +783,8 @@ B_tmp = B_hyp %>%
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
   for(exp in 1:2){
-  posterior = B_tmp[B_tmp$exp == exp & B_tmp$population == population,'Late in Semester'] -
-  B_tmp[B_tmp$exp == exp & B_tmp$population == population,'Early in Semester']
+  posterior = B_tmp[B_tmp$exp == exp & B_tmp$population == population,'Early in Semester'] -
+  B_tmp[B_tmp$exp == exp & B_tmp$population == population,'Late in Semester']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
   results[ctr,col[exp]] = ci_text(unlist(posterior))
@@ -790,15 +804,15 @@ B_tmp = B_ind %>%
             n = length(Accuracy)) #take difference between accuracy and speed and collapse across people
 
 ctr=ctr+1
-names[ctr] = c('\\hspace{3mm} Speed vs Accuracy')
+names[ctr] = c('\\hspace{3mm} Accuracy vs Speed')
 names[ctr+1] = c('\\hspace{6mm} Early')
-names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
-                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
-                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[(ctr+2):(ctr+4)] = c('\\hspace{9mm} Local, Credit',
+                           '\\hspace{9mm} Local, Paid',
+                           '\\hspace{9mm} Online, Paid')
 names[ctr+5] = c('\\hspace{6mm} Late')
-names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit vs. Local, Paid',
-                           '\\hspace{9mm} Local, Credit vs. Online, Paid',
-                           '\\hspace{9mm} Local, Paid vs. Online, Paid')
+names[(ctr+6):(ctr+8)] = c('\\hspace{9mm} Local, Credit',
+                           '\\hspace{9mm} Local, Paid',
+                           '\\hspace{9mm} Online, Paid')
 
 
 for(time_of_semester in c('Early in Semester','Late in Semester')){
@@ -811,9 +825,14 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
     B_tmp2 = B_tmp[B_tmp$exp == exp & B_tmp$population==population  & B_tmp$time_of_semester==time_of_semester,]
 
     #get prior density at 0 for this comparisons
-    n_col = B_tmp2$n[1]*4
-    prior = apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
-      apply( matrix(rnorm(n=n_col*100000,mean=1,sd=2),ncol=n_col) , 1 , 'mean')
+    n_col = B_tmp2$n[1]
+
+    mean_prior = rtnorm(n=n_col*100000,mean=1,sd=1,lower=0)
+    sd_prior = rtnorm(n=n_col*100000,mean=0,sd=1,lower=0)
+
+    prior = apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean') -  #simulated prior for 1 group take simulated prior for another group
+      apply( matrix(rnorm(n=n_col*100000,mean=mean_prior,sd=sd_prior),ncol=n_col) , 1 , 'mean')
+
     d_prior = approxfun(density(prior),rule=2)
 
     #get posterior density at 0
@@ -830,11 +849,11 @@ for(time_of_semester in c('Early in Semester','Late in Semester')){
 ### Comparison 8: pairwise comparison between each participant population (averaged across early vs late groups)
 
 ctr=ctr+1
-names[ctr] = '\\hspace{3mm} Non-decision time'
+names[ctr] = 'Non-decision time'
 
-names[(ctr+1):(ctr+3)] = c('\\hspace{6mm} Local, Credit vs. Local, Paid',
-                           '\\hspace{6mm} Local, Credit vs. Online, Paid',
-                           '\\hspace{6mm} Local, Paid vs. Online, Paid')
+names[(ctr+1):(ctr+3)] = c('\\hspace{3mm} Local, Credit vs. Local, Paid',
+                           '\\hspace{3mm} Local, Credit vs. Online, Paid',
+                           '\\hspace{3mm} Local, Paid vs. Online, Paid')
 
 
 #get prior density at 0 for these comparisons
@@ -897,8 +916,8 @@ ctr=ctr+1
 for(population in c('Local, Credit','Local, Paid','Online, Paid')){
   ctr=ctr+1
   for(exp in 1:2){
-  posterior = t0_tmp[t0_tmp$exp == exp & t0_tmp$population == population,'Late'] -
-    t0_tmp[t0_tmp$exp == exp & t0_tmp$population == population,'Early']
+  posterior = t0_tmp[t0_tmp$exp == exp & t0_tmp$population == population,'Early'] -
+    t0_tmp[t0_tmp$exp == exp & t0_tmp$population == population,'Late']
   d_posterior = approxfun(density(unlist(posterior)),rule=2)
 
   results[ctr,col[exp]] =ci_text(unlist(posterior))
@@ -922,7 +941,7 @@ colnames(results_labelled) <- c(" ",rep(c('CI','BF'),2))
 results_labelled
 
 latex_table=xtable(results_labelled,
-                   align=rep("l",ncol(results_labelled)+1),
+                   align=c("r",rep("l",ncol(results_labelled))),
                    caption="Computational Modeling Results for Studies 2 and 3",
                    label = "tab:modeling_results")
                    #digits = set_digits(results),
@@ -943,4 +962,4 @@ print(latex_table,
       math.style.exponents = TRUE,
       sanitize.text.function=identity,
       include.rownames = F,
-      size='scriptsize')
+      size='tiny')
